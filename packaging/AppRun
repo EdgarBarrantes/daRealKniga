@@ -1,0 +1,27 @@
+#!/bin/sh
+# AppImage entry point.
+#   realkniga.AppImage                 -> opens the window
+#   realkniga.AppImage book.djvu       -> opens the window with that book
+#   realkniga.AppImage make|doctor ... -> command line (see --help)
+HERE="$(dirname "$(readlink -f "$0")")"
+export PATH="$HERE/usr/bin:$PATH"
+unset PYTHONHOME PYTHONPATH
+export PYTHONNOUSERSITE=1
+
+# Qt's X11 plugin needs some xcb libraries that not every desktop has installed (notably
+# libxcb-cursor0). Bundled copies are used only when one of them is missing on the system.
+if [ -d "$HERE/usr/lib/qt-extra" ]; then
+  have=$( (/sbin/ldconfig -p || ldconfig -p) 2>/dev/null)
+  for f in "$HERE"/usr/lib/qt-extra/*.so*; do
+    if ! printf '%s' "$have" | grep -q "$(basename "$f") "; then
+      export LD_LIBRARY_PATH="$HERE/usr/lib/qt-extra${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+      break
+    fi
+  done
+fi
+
+PY="$HERE/usr/python/bin/python3"
+case "${1:-}" in
+  make|doctor|gui|-h|--help|--version) exec "$PY" -m realkniga "$@" ;;
+  *) exec "$PY" -m realkniga gui ${1:+"$1"} ;;
+esac

@@ -1,0 +1,6 @@
+# Minimal Tesseract 5 image. Language models are not baked in: realkniga downloads
+# tessdata_best models to its cache and mounts them at /tessdata.
+FROM ubuntu:24.04
+RUN apt-get update \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tesseract-ocr \
+ && rm -rf /var/lib/apt/lists/*

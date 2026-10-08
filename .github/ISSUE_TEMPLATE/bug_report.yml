@@ -1,0 +1,62 @@
+name: Problem report
+description: Something went wrong, crashed, or the result looks bad
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! Please don't attach whole copyrighted books or private documents: a page or two
+        (a screenshot or a short PDF/DjVu excerpt, with personal data blacked out) is plenty.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what you got instead.
+    validations:
+      required: true
+  - type: dropdown
+    id: how
+    attributes:
+      label: How do you run realkniga?
+      options:
+        - AppImage (window)
+        - AppImage (command line)
+        - Tarball
+        - pip / install.sh (command line)
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Shown at the bottom of the window, or `realkniga --version`.
+    validations:
+      required: true
+  - type: input
+    id: input
+    attributes:
+      label: Kind of document
+      description: e.g. "DjVu textbook, 300 pages, Bulgarian + English", "phone photos of a Russian novel", "receipt photo, Ukrainian + English"
+  - type: textarea
+    id: settings
+    attributes:
+      label: Settings or command
+      description: Language and any changed settings, or the full command line.
+      render: shell
+  - type: textarea
+    id: log
+    attributes:
+      label: Log
+      description: In the window open "Details" and press "Copy log". On the command line, copy the output.
+      render: text
+  - type: textarea
+    id: doctor
+    attributes:
+      label: Output of `realkniga doctor`
+      description: "AppImage: `./realkniga-*.AppImage doctor`"
+      render: text
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      description: e.g. Ubuntu 24.04, Fedora 41, Arch

@@ -1,0 +1,79 @@
+# Builds the AppImage and the portable tarball. Started by hand (Actions -> Release (AppImage)
+# -> Run workflow) because the build takes 30-40 minutes. With a tag (e.g. v1.2.0) the files
+# are attached to that existing release; without one they are kept as a workflow artifact.
+name: Release (AppImage)
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to attach the files to, e.g. v1.2.0 (empty = artifact only)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  appimage:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+
+      - name: Version
+        id: v
+        run: |
+          if [ -n "${{ inputs.tag }}" ]; then
+            v="${{ inputs.tag }}"; v="${v#v}"
+          else
+            v="$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml)-dev.${GITHUB_SHA::7}"
+          fi
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+
+      - name: Free disk space
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+
+      - name: Build AppImage and tarball (Ubuntu 22.04 container)
+        env:
+          VERSION: ${{ steps.v.outputs.version }}
+          REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+        run: packaging/build-in-docker.sh
+
+      - name: Test the AppImage on real book pages
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: "1"
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq djvulibre-bin
+          python3 -m pip install -q rapidfuzz pymupdf pikepdf
+          export REALKNIGA_CMD="$PWD/dist/realkniga-${{ steps.v.outputs.version }}-x86_64.AppImage"
+          "$REALKNIGA_CMD" doctor
+          python3 tests/accuracy.py --check djvu-ru pdf-ru
+
+      - name: Attach to the release
+        if: inputs.tag != ''
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag }}
+          files: |
+            dist/*.AppImage
+            dist/*.tar.gz
+            dist/SHA256SUMS
+          append_body: true
+          body: |
+
+            ## Downloads
+            - **`realkniga-${{ steps.v.outputs.version }}-x86_64.AppImage`**: download it, make it executable (`chmod +x realkniga-*.AppImage`) and double-click it, or run it from a terminal. It works on any 64-bit Linux from about 2022 onwards (glibc 2.35+).
+            - **`realkniga-${{ steps.v.outputs.version }}-x86_64.tar.gz`**: the same files unpacked, for systems without FUSE. Extract it and run `realkniga-${{ steps.v.outputs.version }}/AppRun`.
+            - The first run downloads the OCR models (~150 MB).
+            - Command line: `./realkniga-*.AppImage make document.pdf --lang bul+eng` (see `--help`).
+
+      - name: Keep the build
+        if: inputs.tag == ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: realkniga-${{ steps.v.outputs.version }}
+          path: dist/*
+          retention-days: 7

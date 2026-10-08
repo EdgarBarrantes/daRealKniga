@@ -1,0 +1,316 @@
+# realKniga
+
+**OCR for Slavic and English documents: books, scans, photos, receipts and notes,
+in Cyrillic, Latin, or both mixed.**
+
+realKniga turns scanned or photographed pages into clean, **searchable** PDF (and DjVu)
+files: text you can select, copy and search, on top of page images that look good and stay
+small. It also writes the recognised text as a plain `.txt` file.
+
+> *The name.* **книга** (*kniga*) means "book" in Bulgarian and Russian, as in most Slavic
+> languages.
+
+### Who it's for
+
+- **Slavic languages first.**
+  - Bulgarian, Russian, Ukrainian, Belarusian, Macedonian and Serbian (Cyrillic).
+  - Polish, Czech, Slovak, Slovenian, Croatian and Bosnian (Latin script).
+  - English.
+  - It works with any language Tesseract supports, but the defaults, tests and
+    corrections are tuned for Slavic + English.
+- **Mixed Cyrillic and Latin text.** This is where realKniga stands out: language
+  textbooks, dictionaries, bilingual documents, Cyrillic text with English terms, product
+  names on receipts.
+  - **The problem.** Ordinary OCR mixes up look-alike letters across the two alphabets
+    (`a`/`а`, `c`/`с`, `p`/`р`, `H`/`Н`). The result looks right but can't be searched.
+  - **What realKniga does.** It combines two OCR engines (Tesseract and PaddleOCR) and
+    resolves every word with dictionaries and the script of the surrounding words.
+- **Not only books.** It handles a whole scanned book, a phone photo of a single receipt,
+  printed or typed notes, letters, forms or a stack of document photos. Handwriting is not
+  supported. Photos are
+  flattened, the lighting is evened out and the paper is whitened before OCR.
+
+### What goes in and what comes out
+
+| Input | What happens | Output |
+|---|---|---|
+| **DjVu** book or document (already scanned) | pages are OCR'd; images are kept as they are | the same `.djvu` with a hidden text layer, a layered `.pdf`, a `.txt` |
+| **Photos**: a single image (receipt, note, letter), a folder of images, or a PDF made of photos | pages are flattened, cleaned, resized and OCR'd | a compact `.pdf` with a text layer, a `.txt` |
+| **Flat scans** as a PDF or images | same as photos; flattening is skipped automatically | `.pdf`, `.txt` |
+
+Every output page has **the same size**, even when the source pages were scanned at
+different resolutions.
+
+![realKniga window](docs/screenshot.png)
+
+## Download (Linux AppImage)
+
+The easiest way is the AppImage from the [Releases page](../../releases/latest), you can also [build it yourself](#building-the-appimage). It has
+everything bundled: Python, PaddleOCR, Tesseract 5, DjVuLibre and the interface.
+The command itself is lowercase: `realkniga`.
+
+```bash
+chmod +x realkniga-*-x86_64.AppImage
+./realkniga-*-x86_64.AppImage                  # opens the window (or double-click it)
+./realkniga-*-x86_64.AppImage make book.djvu   # command line, same options as below
+```
+
+- **Systems.** It runs on 64-bit Linux distributions from about 2022 onwards (glibc 2.35+).
+- **No FUSE?** On systems without FUSE (`libfuse2`), use the `.tar.gz` from the same
+  release: extract it and run `realkniga-<version>/AppRun`.
+- **First run.** The first document downloads the OCR models (~150 MB).
+
+### Using the window
+
+1. **Choose the document.** Drop a `.djvu`, a `.pdf`, a photo or a folder of photos on the
+   window, or use **Choose file…** / **Choose folder…**.
+2. **Settings.** Pick the language and optionally a title and author. For text that mixes
+   alphabets, pick a "+ English" option such as **Bulgarian + English**. The results are
+   saved next to the input unless you choose another folder. For a long book, try `1-20` in
+   **Pages** first.
+3. **Run.** Press **Make searchable**.
+   - **Progress.** The bar shows each stage.
+   - **Details.** Shows the full log.
+   - **Cancel.** A cancelled or interrupted book resumes where it stopped when started
+     again.
+4. **Results.** When it's done, **Open PDF** and **Show in folder** take you to the
+   results.
+
+**Advanced settings** has the OCR engine, page size, colour handling, flattening,
+parallelism and clean-up.
+
+## Install from source
+
+Needs Python 3.10+, plus:
+
+- **Tesseract 4+** (`sudo apt install tesseract-ocr` / `brew install tesseract`), or **Docker**:
+  if no local `tesseract` exists, realKniga builds a small Tesseract image and uses that.
+  Language models (`tessdata_best`, the most accurate ones) are downloaded automatically
+  to `~/.cache/realkniga/tessdata`.
+- **DjVuLibre**, for DjVu input only (`sudo apt install djvulibre-bin` / `brew install djvulibre`).
+
+```bash
+./install.sh            # creates .venv, installs, links ~/.local/bin/realkniga
+GPU=1 ./install.sh      # same, with the CUDA build of PaddlePaddle
+realkniga doctor        # checks every dependency
+realkniga gui           # the window (or realkniga-gui)
+```
+
+The first run downloads the PaddleOCR / UVDoc models (~100 MB) to `~/.paddlex`.
+
+## Use
+
+```bash
+# DjVu textbook in Bulgarian + English
+realkniga make "Bulgarian for Beginners - Part 1.djvu" --lang bul+eng
+
+# a single photo: receipt, letter, note
+realkniga make receipt.jpg --lang ukr+eng
+
+# phone photos of a book, as one PDF or as a folder of images
+realkniga make book.pdf --lang bul --title "Под игото" --author "Иван Вазов"
+realkniga make phone-photos/ --lang rus --page-size 6x9
+
+# try a few pages first
+realkniga make book.djvu --pages 1-20 -o /tmp/trial
+```
+
+Outputs go next to the input (or to `-o FOLDER`) as `<name> (OCR).pdf/.djvu/.txt`.
+Intermediate files are kept in `<output>/.realkniga/<name>/`. Rerunning the same command
+resumes where it stopped and redoes only the stages whose settings changed. Pass
+`--cleanup` to delete them at the end.
+
+Main options (`realkniga make --help` lists them all):
+
+| Option | Meaning |
+|---|---|
+| `-l, --lang` | Tesseract codes, main language first: `bul+eng`, `rus`, `ukr+eng`, `deu`, ... |
+| `--engine` | `tesseract`, or `fused` (Tesseract + PaddleOCR; slower, 1–3 points more accurate). `auto` uses fused for Cyrillic languages |
+| `--page-size WxH` | output page size in inches. Default: DjVu uses the book's typical page size; photos use `--page-width` (5.5) and the pages' aspect ratio |
+| `--color auto/never/always` | photo mode: `auto` keeps colourful pages (covers) in colour and makes the rest greyscale |
+| `--unwarp auto/always/never` | photo mode: flatten with UVDoc. `auto` flattens only pages that look like photos (background or shadows around the page); cropped flat scans are left untouched |
+| `--formats pdf,djvu,txt` | which outputs to write |
+| `--pages 1-20,35` | process only some pages |
+| `-j, --jobs` | parallelism (default: all CPUs) |
+
+## How it works
+
+### Scan mode (DjVu)
+
+1. **Page geometry.** Read each page's pixel size and dpi. Pages stored at a much higher
+   resolution than the rest but labelled with the same dpi would display 2–4× larger, so
+   their dpi is corrected. The output page box is the median width × 95th-percentile height.
+2. **Render** each page in greyscale at up to 300 dpi for OCR.
+3. **OCR.** Tesseract (`tessdata_best`) gives accurate word boxes and is strong on Cyrillic.
+   For Cyrillic books, PaddleOCR PP-OCRv5 also runs on every page.
+4. **Fusion** (`fuse.py`). Words are matched by position. Where the engines disagree, the
+   reading found in the language's lexicon wins (wordfreq).
+   - Latin/Cyrillic look-alikes (`ce`/`се`, `Ha`/`На`, `6`/`б`) are resolved using the
+     script of the surrounding words.
+   - Stress accents are removed so words can be searched.
+   - Letter case is repaired. Many Cyrillic capitals are just bigger lower-case letters
+     (с/С, и/И, г/Г), so OCR produces "МНОго", "СИ" mid-sentence, or "Ги" after a hyphenated
+     line break. These are fixed using the other engine's reading, the sentence position and
+     the dictionary. Names, acronyms and headings are left alone.
+   - Some typefaces make Tesseract misread н as п (or и, ш/щ, ь/ъ) all over a page
+     ("па", "мопастырь"). On pages where this happens systematically, lower-case words not
+     in the lexicon are replaced by a far more frequent look-alike spelling. Names and
+     isolated hits are left alone.
+5. **DjVu output.** The original file gets a hidden text layer with page, line and word
+   boxes, and per-page dpi values that make every page display at the same width. The page
+   images are not re-encoded.
+6. **PDF output.** Each DjVu page is rebuilt as a layered page:
+   - a ~100 dpi JPEG background;
+   - the full-resolution 1-bit text mask (CCITT G4), carrying a low-resolution colour layer
+     for the ink.
+
+   This keeps text sharp at about 3 MB per 100 pages. Pages are scaled to fit the common
+   page box and centred.
+
+### Photo mode (images or image PDF)
+
+1. **Extract.**
+   - From a PDF, the embedded photos are taken without recompression.
+   - From a folder, images are sorted by name in natural order (`2.jpg` before `10.jpg`),
+     and EXIF rotation is applied.
+2. **Flatten** with UVDoc (a document-unwarping network). It straightens curled lines,
+   removes perspective, and crops away the background and fingers. Each page is checked
+   first: a page with background or shadows around it counts as a photo. A cropped flat
+   scan, with paper right up to the edges, is left as it is, because flattening and edge
+   trimming would cut off its outer lines.
+3. **Clean** (`enhance.py`):
+   - **Lighting.** The paper brightness is estimated, filling in large dark regions such as
+     photos from the paper around them, and the page is divided by it. This removes shadows
+     and uneven light.
+   - **Text.** The paper turns white, which also hides text showing through from the other
+     side, and ink is darkened and sharpened.
+   - **Photos.** Photos are detected (large dark regions) and get a gentle curve and a blur
+     that hides the printing dots.
+   - **Colour.** Colourful pages (covers) are only white-balanced and stay in colour.
+   - **Size.** Every page is resized to the same size at 400 dpi.
+4. **OCR** as above, on the cleaned 400 dpi pages.
+5. **PDF.**
+   - **Text** becomes a 1-bit stencil, binarised (Sauvola) from a 2× upscaled copy, which
+     gives smooth glyph edges at 800 dpi.
+   - **Photos** are stored as a separate greyscale JPEG at 200 dpi.
+   - **Covers** are stored as colour JPEGs.
+
+   A 130-page book comes out at about 20 MB.
+
+### The text layer
+
+The invisible text uses the same technique as Tesseract's own PDF output:
+- A glyph-less font whose character codes are UTF-16 and map one-to-one back to Unicode.
+- Text is drawn invisibly (render mode 3), and each word is stretched horizontally to
+  exactly cover its box on the page.
+
+Selection, copy and search therefore line up with the printed words in any PDF viewer. The
+`.txt` export rejoins words hyphenated across line ends.
+
+## Tests
+
+```bash
+.venv/bin/pip install -e ".[test]"
+.venv/bin/pytest                  # everything (~1 min after the first run)
+.venv/bin/pytest -m "not accuracy" # unit tests only (no downloads, < 1 s)
+.venv/bin/python tests/accuracy.py # just the accuracy table
+```
+
+The **accuracy tests** take a few pages from public books on the Internet Archive that
+already have a good text layer. Each sample is cut out with its text layer removed, processed
+by realKniga, and the text read back from every output (PDF, DjVu, TXT) is scored against
+the original text. The books are downloaded once (~40 MB) to `~/.cache/realkniga/testdata`
+and checked against SHA-256 hashes.
+
+| Sample | Source | Mode |
+|---|---|---|
+| `djvu-ru` | Иван Вазов, *Под игом* (Russian edition, 1970), DjVu, 4 pages | scan mode |
+| `pdf-ru` | the same edition as a PDF, 4 pages; reference = the DjVu text | photo mode (flat scans) |
+| `pdf-bg` | Иван Вазов, *Събрани съчинения*, т. 4 (1974), Bulgarian PDF, 3 two-page spreads | photo mode |
+
+Results at the time of writing:
+
+```
+sample    out    words  word F1   recall  precis.    chars
+djvu-ru   pdf     1339    95.5%    95.5%    95.5%    99.1%
+djvu-ru   djvu    1339    95.5%    95.5%    95.5%    99.1%
+djvu-ru   txt     1339    95.5%    95.5%    95.5%    99.1%
+pdf-ru    pdf     1339    95.4%    95.4%    95.4%    99.1%
+pdf-ru    txt     1339    95.4%    95.4%    95.4%    99.1%
+pdf-bg    pdf      603    88.4%    88.4%    88.4%    82.1%
+pdf-bg    txt      603    88.4%    88.4%    88.4%    82.1%
+```
+
+- **word F1** is the share of words that match the reference, regardless of order.
+- **chars** is 1 − (character edit distance ÷ length), in reading order.
+- **The references are OCR themselves**, so these are agreement figures.
+- **`pdf-bg`** scores lower for three reasons:
+  - it is a 133 dpi scan;
+  - its reference text has many errors of its own ("бопбата", "гкева"), which realKniga
+    reads correctly;
+  - its two-page spreads affect reading order.
+
+Each sample has minimum scores, and the tests also check the outputs themselves:
+- the page count is right and every page is the same size;
+- every page has text;
+- the text layer stays within the page;
+- DjVu pages display at the same width.
+
+## Building the AppImage
+
+```bash
+packaging/build-in-docker.sh               # needs only Docker
+VERSION=1.2.0 packaging/build-in-docker.sh
+```
+
+This builds inside a clean Ubuntu 22.04 container, so the AppImage works on most
+distributions. It writes `dist/realkniga-<version>-x86_64.AppImage`, a portable `.tar.gz`
+and `SHA256SUMS`.
+- **Inside Ubuntu 22.04.** On a 22.04 machine or container, you can run
+  `packaging/build-appimage.sh` directly, as root.
+- **What gets bundled.** Python comes from python-build-standalone. realKniga is installed
+  with its dependencies and the Qt interface. Tesseract 5 and the DjVuLibre tools are copied
+  in with their libraries using linuxdeploy. Every downloaded tool is checked against a
+  pinned SHA-256.
+- **Checks.** The build runs `doctor` and opens the window offscreen before packing.
+
+## Reporting problems and ideas
+
+Bug reports and suggestions are very welcome. Please use the repository's
+[**Issues** page](../../issues/new/choose):
+
+- **Problem report.** For crashes, errors, or results that look wrong: misread text,
+  badly cleaned pages, wrong page sizes. The form asks for:
+  - **Version.** It's shown at the bottom of the window, or run `realkniga --version`.
+  - **How you run it.** AppImage, tarball or pip.
+  - **The language and settings**, or the command you used.
+  - **The log.** In the window, open **Details** and press **Copy log**.
+  - **The output of `realkniga doctor`.**
+- **Idea or request.** For new features, languages or input formats.
+
+If a page comes out badly, attach a **page or two** as an example: a screenshot or a short
+excerpt is enough. Please don't upload whole copyrighted books. In the AppImage,
+**Report a problem…** next to the log opens the issue form directly.
+
+## Tips & limitations
+
+- **Photographing a book.** Use even light and no flash. Fill the frame with a single page,
+  or crop two-page spreads before processing. Hold the camera steady: blurry areas stay
+  slightly soft.
+- **Receipts, notes and single pages.** Take the photo straight on, with the whole page
+  in the frame and some background around it, so realKniga can find the edges and flatten
+  it. Choose the language mix you expect, e.g. **Ukrainian + English** for a receipt with
+  English product names.
+- **Ordering.** Photo order follows the file names, so make sure they sort correctly.
+- **Hyphenation.** A word hyphenated across a line break is two words in the PDF's text
+  layer, so searching for the whole word won't find it. The `.txt` export joins them.
+- **Fusion.** The fusion rules are tuned for Cyrillic (+ Latin). Other scripts use
+  Tesseract alone.
+- **Maps, tables and handwriting.** These OCR poorly. That doesn't affect the page images.
+- **Memory.** The PDF stage of photo mode uses about 1 GB per parallel job. Lower `-j` on
+  small machines.
+
+## License
+
+MIT for realKniga. `data/glyphless.ttf` comes from Tesseract (Apache-2.0). Tesseract,
+PaddleOCR, UVDoc and DjVuLibre keep their own licences.

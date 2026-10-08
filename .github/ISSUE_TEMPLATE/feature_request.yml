@@ -1,0 +1,14 @@
+name: Idea or request
+description: Suggest an improvement, a language, an input format…
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like realkniga to do?
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why? What kind of documents is it for?

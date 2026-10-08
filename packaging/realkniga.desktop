@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=realKniga
+GenericName=Document OCR
+Comment=Make scanned or photographed books, documents, receipts and notes searchable (Cyrillic and Latin)
+Exec=realkniga %f
+Icon=realkniga
+Terminal=false
+Categories=Office;Graphics;Scanning;OCR;
+MimeType=image/vnd.djvu;application/pdf;image/jpeg;image/png;image/tiff;image/webp;
+Keywords=OCR;scan;book;receipt;PDF;DjVu;searchable;Cyrillic;Bulgarian;Russian;Ukrainian;

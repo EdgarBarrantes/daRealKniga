@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "realkniga"
+version = "0.1.0"
+description = "OCR for Slavic and English documents (books, scans, photos, receipts) in Cyrillic, Latin or both mixed: clean, searchable PDF/DjVu"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.26",
+    "opencv-contrib-python>=4.8",
+    "pillow>=10",
+    "pikepdf>=8",
+    "pymupdf>=1.24",
+    "wordfreq>=3.0",
+    "paddlepaddle>=3.0,<3.3",  # 3.3.x: oneDNN crash on CPU (ConvertPirAttribute2RuntimeAttribute)
+    "paddleocr>=3.1,<3.8",
+]
+
+[project.optional-dependencies]
+gui = ["PySide6-Essentials>=6.6"]
+test = ["pytest>=8", "rapidfuzz>=3"]
+
+[project.scripts]
+realkniga = "realkniga.cli:main"
+
+[project.gui-scripts]
+realkniga-gui = "realkniga.gui:main"
+
+[tool.setuptools]
+packages = ["realkniga"]
+
+[tool.setuptools.package-data]
+realkniga = ["data/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["accuracy: downloads sample books and runs the full pipeline (minutes)"]
