@@ -108,11 +108,15 @@ def doctor():
             row(name, False, str(e).splitlines()[0])
     for t in ("ddjvu", "djvused", "djvudump"):
         row(f"(optional) {t} (DjVu input)", shutil.which(t), "" if shutil.which(t) else INSTALL_HINTS["djvu"])
-    tess = shutil.which("tesseract")
+    from .ocr import tesseract_version
+    major = tesseract_version()
+    tess = (major or 0) >= 4
     dock = shutil.which("docker")
     if tess:
         v = subprocess.run(["tesseract", "--version"], capture_output=True, text=True).stdout.split("\n")[0]
         row("tesseract (local)", True, v)
+    elif shutil.which("tesseract"):
+        row("(optional) tesseract (local)", False, "version 4 or newer needed; Docker will be used")
     else:
         row("(optional) tesseract (local)", False, "not found; Docker will be used")
     if not tess:

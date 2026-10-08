@@ -5,6 +5,7 @@ both use tessdata_best models downloaded to a cache directory. PaddleOCR runs in
 worker processes, each holding its own model instance.
 """
 import os
+import re
 import shutil
 import subprocess
 import threading
@@ -38,17 +39,22 @@ def ensure_tessdata(langs, d):
         os.replace(tmp, dst)
 
 
+def tesseract_version():
+    """Major version of the local tesseract, or None. Builds write "tesseract 5.3.4" or, on Windows,
+    "tesseract v5.5.3.20260724"."""
+    if not shutil.which("tesseract"):
+        return None
+    out = subprocess.run(["tesseract", "--version"], capture_output=True, text=True)
+    m = re.search(r"tesseract v?(\d+)\.", out.stdout + out.stderr)
+    return int(m.group(1)) if m else None
+
+
 def tesseract_backend(prefer=None):
     """'local' if a tesseract binary (v4+) is on PATH, else 'docker'."""
     if prefer in ("local", "docker"):
         return prefer
-    if shutil.which("tesseract"):
-        out = subprocess.run(["tesseract", "--version"], capture_output=True, text=True).stdout
-        try:
-            if int(out.split()[1].split(".")[0]) >= 4:
-                return "local"
-        except (IndexError, ValueError):
-            pass
+    if (tesseract_version() or 0) >= 4:
+        return "local"
     if shutil.which("docker"):
         return "docker"
     raise SystemExit("Tesseract not found: install tesseract-ocr (v4+) or Docker.")

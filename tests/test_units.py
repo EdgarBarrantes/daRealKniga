@@ -247,3 +247,18 @@ def test_main_module_is_guarded():
     import os
     src = open(os.path.join(os.path.dirname(i18n.__file__), "__main__.py"), encoding="utf-8").read()
     assert 'if __name__ == "__main__":' in src
+
+
+@pytest.mark.parametrize("out, major", [("tesseract 5.3.4\n leptonica-1.82.0", 5),
+                                        ("tesseract v5.5.3.20260724\n leptonica-1.85.0", 5),
+                                        ("tesseract 3.05.02", 3), ("something else", None)])
+def test_tesseract_version(monkeypatch, out, major):
+    """Windows builds print 'tesseract v5.5.3...': still a local Tesseract 5, not a reason to use Docker."""
+    import subprocess
+    from darealkniga import ocr
+    monkeypatch.setattr(ocr.shutil, "which", lambda name: "/usr/bin/" + name)
+    monkeypatch.setattr(ocr.subprocess, "run",
+                        lambda *a, **k: subprocess.CompletedProcess(a, 0, stdout=out, stderr=""))
+    assert ocr.tesseract_version() == major
+    if major and major >= 4:
+        assert ocr.tesseract_backend() == "local"
