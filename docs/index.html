@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>daRealKniga</title>
+<meta name="description" content="Free OCR for old books, archives and documents in Slavic languages and English: turns scans and phone photos into faithful, searchable PDFs, even when Cyrillic and Latin are mixed.">
+<meta property="og:title" content="daRealKniga: OCR for Slavic and English documents">
+<meta property="og:description" content="Scans and phone photos in, clean searchable PDFs out. Reads mixed Cyrillic and Latin text far better than plain OCR.">
+<meta property="og:image" content="https://edgarbarrantes.github.io/daRealKniga/screenshot.png">
+<link rel="icon" href="icon.png">
+<style>
+:root {
+  --bg: #f6f8fa; --card: #ffffff; --ink: #1f2328; --muted: #57606a; --line: #d0d7de;
+  --brand: #2b4f97; --brand-ink: #ffffff; --good: #1a7f37; --bad: #b42020; --bad-bg: #ffdcda;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1117; --card: #161b22; --ink: #e6edf3; --muted: #9198a1; --line: #30363d;
+    --brand: #7aa2f7; --brand-ink: #0d1117; --good: #3fb950; --bad: #ff7b72; --bad-bg: #4a1e1e;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d1117; --card: #161b22; --ink: #e6edf3; --muted: #9198a1; --line: #30363d;
+  --brand: #7aa2f7; --brand-ink: #0d1117; --good: #3fb950; --bad: #ff7b72; --bad-bg: #4a1e1e;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); line-height: 1.55;
+       font: 17px/1.55 -apple-system, "Segoe UI", system-ui, Roboto, "Noto Sans", Helvetica, Arial, sans-serif; }
+main { max-width: 980px; margin: 0 auto; padding: 0 16px 56px; }
+a { color: var(--brand); }
+img { max-width: 100%; height: auto; }
+h1, h2, h3 { line-height: 1.2; margin: 0 0 .5em; }
+h2 { font-size: 1.7rem; margin-top: 2.6em; }
+h3 { font-size: 1.15rem; margin-top: 1.8em; }
+p { margin: 0 0 1em; }
+
+.hero { text-align: center; padding: 56px 0 24px; }
+.hero img.logo { width: 84px; height: 84px; }
+.hero h1 { font-size: clamp(2.3rem, 7vw, 3.4rem); margin: .25em 0 .2em; letter-spacing: -.02em; }
+.hero .tag { font-size: 1.25rem; color: var(--ink); max-width: 680px; margin: 0 auto .6em; }
+.hero .gloss { color: var(--muted); font-size: .98rem; }
+.buttons { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 26px 0 8px; }
+.btn { display: inline-block; padding: 11px 20px; border-radius: 9px; text-decoration: none; font-weight: 600;
+       border: 1px solid var(--line); background: var(--card); color: var(--ink); }
+.btn.primary { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
+.btn:hover { filter: brightness(1.06); }
+
+.demo { display: block; width: 100%; max-width: 760px; margin: 28px auto 6px; border-radius: 12px; border: 1px solid var(--line);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, .12); }
+.caption { text-align: center; color: var(--muted); font-size: .92rem; }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px 18px 6px; }
+.card h3 { margin-top: 0; }
+.card p { color: var(--muted); font-size: .97rem; }
+
+.lead { font-size: 1.2rem; }
+.chart { display: block; margin: 18px auto; border-radius: 12px; border: 1px solid var(--line); }
+.scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line);
+        border-radius: 12px; overflow: hidden; font-size: .97rem; }
+th, td { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+th { color: var(--muted); font-weight: 600; font-size: .88rem; }
+tr:last-child td { border-bottom: 0; }
+td small { display: block; color: var(--muted); font-size: .82rem; }
+td.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+td.best { font-weight: 700; color: var(--good); }
+b.wrong { color: var(--bad); background: var(--bad-bg); border-radius: 3px; padding: 0 2px; }
+.note { color: var(--muted); font-size: .88rem; margin-top: .7em; }
+
+.get { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; }
+.get .card a.btn { margin: 4px 0 14px; }
+.wip { display: inline-block; font-size: .78rem; font-weight: 600; color: var(--muted);
+       border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; margin-left: 4px; vertical-align: 2px; }
+footer { text-align: center; color: var(--muted); font-size: .9rem; margin-top: 56px; }
+@media (max-width: 560px) {
+  body { font-size: 16px; } .hero { padding-top: 36px; }
+  table { font-size: .88rem; } th, td { padding: 8px 6px; } td small { display: none; }
+}
+</style>
+</head>
+<body>
+<main>
+
+<header class="hero">
+  <img class="logo" src="icon.png" alt="">
+  <h1>daRealKniga</h1>
+  <p class="tag">Turn old books, archives and everyday documents into faithful, <strong>searchable</strong> digital copies. Made for Slavic languages and English, even mixed on one page.</p>
+  <p class="gloss"><em>да</em> = yes, <em>книга</em> = book: “yes, a real book”, with real, searchable text.</p>
+  <div class="buttons">
+    <a class="btn primary" href="#get-it">Get it, free</a>
+    <a class="btn" href="#accuracy">How good is it?</a>
+    <a class="btn" href="https://github.com/EdgarBarrantes/daRealKniga">Source on GitHub</a>
+  </div>
+</header>
+
+<img class="demo" src="demo.gif" width="806" height="638" alt="A curled phone photo of a Bulgarian and English page is dropped into daRealKniga; a clean, searchable PDF comes out; plain OCR's misread words are shown next to daRealKniga's.">
+<p class="caption">A real run: a phone photo in, a searchable PDF out, and plain OCR on the same photo for comparison.</p>
+
+<h2 id="what">What it does</h2>
+<div class="cards">
+  <div class="card"><h3>Searchable PDFs</h3><p>Turns DjVu books, image PDFs, photos and scans into PDFs you can search, select and copy. It also writes a plain text file and, for DjVu books, a searchable DjVu.</p></div>
+  <div class="card"><h3>Cyrillic and Latin, mixed</h3><p>Textbooks, dictionaries and bilingual documents keep each word in its own alphabet. Look-alike letters (<code>а</code>/<code>a</code>, <code>р</code>/<code>p</code>, <code>Н</code>/<code>H</code>) no longer break search.</p></div>
+  <div class="card"><h3>Photos, not just scans</h3><p>Curled, tilted, shadowed pages from a phone are flattened and cleaned up first, and every page ends up the same size.</p></div>
+  <div class="card"><h3>Your language, your computer</h3><p>The window comes in 31 languages, all Slavic ones included. Everything runs on your computer: your documents never leave it.</p></div>
+</div>
+
+<h2 id="books">For old books and archives</h2>
+<p>daRealKniga is built for digitising whole books and collections, the way a library or an archive would want them: faithful to the original, consistent, and searchable.</p>
+<div class="cards">
+  <div class="card"><h3>The original stays intact</h3><p>DjVu scans keep their page images exactly as they are, with an invisible text layer added. A PDF and a plain-text file are written next to them.</p></div>
+  <div class="card"><h3>Whole books, not just pages</h3><p>Hundreds of pages are processed in parallel. An interrupted run resumes where it stopped, and a page range lets you try the settings on a few pages first.</p></div>
+  <div class="card"><h3>Old print, uneven scans</h3><p>Every page ends up the same size, even when the scans don't match. Tested on Bulgarian and Russian editions from the 1970s, against their existing text.</p></div>
+  <div class="card"><h3>Catalogue-ready, and private</h3><p>Title and author are stored in the PDF. Everything runs on your own computer: collections never leave it, and the formats are open (PDF, DjVu, plain text).</p></div>
+</div>
+
+<h2 id="accuracy">Better than plain OCR</h2>
+<p>Every sample is read three ways from the same page images: by Tesseract alone, by PaddleOCR alone, and by daRealKniga, which cleans the pages up, combines both engines word by word and corrects what they get wrong.</p>
+<!-- benchmark:start -->
+<p class="lead">daRealKniga misreads on average <strong>2.2&times; fewer words</strong> than Tesseract alone and <strong>3.4&times; fewer words</strong> than PaddleOCR alone.</p>
+<img class="chart" src="benchmark.svg" alt="Words misread by Tesseract alone, PaddleOCR alone and daRealKniga, per sample (lower is better)">
+<div class="scroll"><table class="results"><thead><tr><th>Sample</th><th>Tesseract alone</th><th>PaddleOCR alone</th><th>daRealKniga</th></tr></thead><tbody>
+<tr><td>Bulgarian + English textbook page<small>synthetic scan of a language-textbook page: Bulgarian with English words and sentences</small></td><td class="num">97.9%</td><td class="num">86.2%</td><td class="num best">99.8%</td></tr>
+<tr><td>Russian + English technical page<small>synthetic scan of a manual page: Russian with English terms, commands and names</small></td><td class="num">98.3%</td><td class="num">84.7%</td><td class="num best">99.4%</td></tr>
+<tr><td>Phone photo, Bulgarian + English<small>synthetic phone photo of a travel-guide page (curled, in perspective, uneven light): Bulgarian with English names and phrases</small></td><td class="num">89.4%</td><td class="num">82.6%</td><td class="num best">98.1%</td></tr>
+<tr><td>Russian novel, DjVu scan<small>DjVu scan mode, Russian prose (Вазов, Под игом, 1970)</small></td><td class="num">88.0%</td><td class="num">90.9%</td><td class="num best">95.6%</td></tr>
+<tr><td>Russian novel, PDF scan<small>PDF of the same edition (cropped flat scans); reference = the DjVu text layer</small></td><td class="num">88.1%</td><td class="num">88.4%</td><td class="num best">95.4%</td></tr>
+<tr><td>Bulgarian poems, low-res PDF<small>Bulgarian poetry and prose, 133 dpi two-page spreads (Вазов, Събрани съчинения т. 4, 1974); the reference has many OCR errors of its own</small></td><td class="num">87.3%</td><td class="num">87.2%</td><td class="num best">88.4%</td></tr>
+</tbody></table></div>
+<p class="note">Word accuracy: the share of words read exactly right. A Latin letter in place of its Cyrillic look-alike counts as an error, because the word can no longer be found by search.</p>
+<h3>Words plain OCR got wrong</h3><div class="scroll"><table class="examples"><thead><tr><th>Printed</th><th>Tesseract alone</th><th>PaddleOCR alone</th><th>daRealKniga</th></tr></thead><tbody>
+<tr><td>а</td><td><b class="wrong">a</b></td><td>–</td><td>а ✓</td></tr>
+<tr><td>open</td><td><b class="wrong">ореп</b></td><td><b class="wrong">оре</b>n</td><td>open ✓</td></tr>
+<tr><td>монастырских</td><td>мопастырских</td><td>мопастырскнх</td><td>монастырских ✓</td></tr>
+<tr><td>внимание</td><td>впимание</td><td>вшнмание</td><td>внимание ✓</td></tr>
+<tr><td>наполняя</td><td>паполпяя</td><td>паполняя</td><td>наполняя ✓</td></tr>
+<tr><td>стену</td><td>степу</td><td>–</td><td>стену ✓</td></tr>
+<tr><td>них</td><td>пих</td><td>пих</td><td>них ✓</td></tr>
+<tr><td>са</td><td><b class="wrong">ca</b></td><td>са ✓</td><td>са ✓</td></tr>
+<tr><td>нов</td><td><b class="wrong">HOB</b></td><td>нов ✓</td><td>нов ✓</td></tr>
+<tr><td>от</td><td><b class="wrong">OT</b></td><td>от ✓</td><td>от ✓</td></tr>
+<tr><td>or</td><td><b class="wrong">ог</b></td><td>or ✓</td><td>or ✓</td></tr>
+<tr><td>да</td><td><b class="wrong">na</b></td><td>да ✓</td><td>да ✓</td></tr>
+</tbody></table></div><p class="note"><b class="wrong">Highlighted</b> letters come from the wrong alphabet: they look identical on screen, but the word can't be searched.</p>
+<p class="note">Measured 2026-10-08 with daRealKniga 0.3.0, Tesseract 5.3.4 and PaddleOCR 3.7.0. All three read the same page images with the same OCR models.</p>
+<!-- benchmark:end -->
+<p class="note">The samples, the scoring and how to rerun it yourself are described in the <a href="https://github.com/EdgarBarrantes/daRealKniga#tests">README</a>.</p>
+
+<h2 id="get-it">Get it</h2>
+<p>Free and open source (MIT). The first run downloads the OCR models: about 45&nbsp;MB, plus 10–15&nbsp;MB per language.</p>
+<div class="get">
+  <div class="card">
+    <h3>Linux</h3>
+    <p>A single file with everything included. Make it executable and double-click it. Works on 64-bit distributions from about 2022 on.</p>
+    <a class="btn primary" href="https://github.com/EdgarBarrantes/daRealKniga/releases/latest">Download the AppImage</a>
+  </div>
+  <div class="card">
+    <h3>macOS <span class="wip">work in progress</span></h3>
+    <p>Apple Silicon and Intel. Installed with Homebrew and a few Terminal commands.</p>
+    <a class="btn" href="https://github.com/EdgarBarrantes/daRealKniga#install-on-macos">Install on macOS</a>
+  </div>
+  <div class="card">
+    <h3>Windows <span class="wip">work in progress</span></h3>
+    <p>64-bit Windows 10 and 11. Installed with a few PowerShell commands.</p>
+    <a class="btn" href="https://github.com/EdgarBarrantes/daRealKniga#install-on-windows">Install on Windows</a>
+  </div>
+</div>
+<p class="note">macOS and Windows support is new: if something doesn't work, or the instructions are unclear, please <a href="https://github.com/EdgarBarrantes/daRealKniga/issues/new/choose">tell us</a>. Feedback is much appreciated.</p>
+
+<h2 id="use">Using it</h2>
+<p>Open the window, drop in a document, pick the text language and press <strong>Make searchable</strong>. Or use the command line (<code>drk</code> is short for <code>darealkniga</code>):</p>
+<div class="scroll"><table><tbody>
+  <tr><td><code>drk make book.djvu --lang bul+eng</code></td><td>A Bulgarian textbook with English in it</td></tr>
+  <tr><td><code>drk make book.pdf --lang bul --title "Под игото" --author "Иван Вазов"</code></td><td>A Bulgarian book, with its title and author stored in the PDF</td></tr>
+  <tr><td><code>drk make receipt.jpg --lang ukr+eng</code></td><td>A single photo: a receipt, a letter, a note</td></tr>
+  <tr><td><code>drk make phone-photos/ --lang rus</code></td><td>A folder of page photos, in page order</td></tr>
+</tbody></table></div>
+
+<footer>
+  <p><a href="https://github.com/EdgarBarrantes/daRealKniga">GitHub</a> · <a href="https://github.com/EdgarBarrantes/daRealKniga/issues/new/choose">Report a problem or suggest an idea</a> · MIT license</p>
+  <p>Built on Tesseract, PaddleOCR, UVDoc and DjVuLibre.</p>
+</footer>
+</main>
+</body>
+</html>

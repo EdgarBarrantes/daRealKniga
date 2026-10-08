@@ -18,6 +18,7 @@ RESULTS_JSON = os.path.join(ROOT, "benchmarks", "results.json")
 HISTORY_CSV = os.path.join(ROOT, "benchmarks", "history.csv")
 CHART = os.path.join(ROOT, "docs", "benchmark.svg")
 README = os.path.join(ROOT, "README.md")
+SITE = os.path.join(ROOT, "docs", "index.html")
 START, END = "<!-- benchmark:start -->", "<!-- benchmark:end -->"
 
 LABELS = {"tesseract": "Tesseract alone", "paddleocr": "PaddleOCR alone", "darealkniga": "daRealKniga"}
@@ -77,6 +78,7 @@ def save(results):
     with open(CHART, "w", encoding="utf-8") as f:
         f.write(chart(run))
     update_readme(run)
+    update_site(run)
 
 
 # ------------------------------------------------------------------ summary numbers
@@ -150,30 +152,49 @@ def chart(run):
 
 # ------------------------------------------------------------------ README
 
-def _mark(word, ref):
+def _mark(word, ref, bold=lambda s: f"**{s}**", esc=lambda s: s):
     """A reading for the examples table: letters from the wrong alphabet in bold (they look
     identical on screen), and a check mark when the reading is right."""
     if word is None:
         return "–"
     if word.lower() == ref.lower():
-        return f"{word} ✓"
+        return f"{esc(word)} ✓"
     def alpha(ch):
         return "cyr" if "\u0400" <= ch <= "\u04ff" else "lat" if ch.isascii() and ch.isalpha() else None
     want = {alpha(c) for c in ref if alpha(c)}
     if len(want) != 1:
-        return word
+        return esc(word)
     want = want.pop()
     out, cur, bad = [], "", None
     for c in word:
         b = alpha(c) is not None and alpha(c) != want
         if b != bad and cur:
-            out.append(f"**{cur}**" if bad else cur)
+            out.append(bold(esc(cur)) if bad else esc(cur))
             cur = ""
         cur += c
         bad = b
     if cur:
-        out.append(f"**{cur}**" if bad else cur)
+        out.append(bold(esc(cur)) if bad else esc(cur))
     return "".join(out)
+
+
+def pick_examples(run):
+    """Up to 12 distinct words plain OCR got wrong and daRealKniga got right: first those both
+    engines got wrong (only the combination reads them), then alphabet mix-ups."""
+    ex = [e for r in run["samples"].values() for e in r.get("fixes", [])]
+
+    def order(e):
+        paddle_ok = bool(e.get("paddleocr")) and e["paddleocr"].lower() == e["ref"].lower()
+        mixed = bool(re.search(r"[A-Za-z]", e["ref"]) or re.search(r"[A-Za-z]", e["tesseract"]))
+        return (paddle_ok, not mixed)
+    seen, uniq = set(), []
+    for e in sorted(ex, key=order):
+        if e["ref"].lower() not in seen:
+            seen.add(e["ref"].lower())
+            uniq.append(e)
+    both = [e for e in uniq if not order(e)[0]][:7]
+    mixed = [e for e in uniq if e not in both and not order(e)[1]][:5]
+    return both + mixed
 
 
 def readme_section(run):
@@ -197,20 +218,7 @@ def readme_section(run):
               "letter in place of its Cyrillic look-alike counts as an error, because it breaks search). "
               "Synthetic pages have an exact reference; for real scans the reference is the book's existing "
               "text layer, itself OCR, so those numbers measure agreement.</sub>", ""]
-    ex = [e for r in run["samples"].values() for e in r.get("fixes", [])]
-    # both engines wrong first (only the combination gets them right), then alphabet mix-ups
-    def order(e):
-        paddle_ok = bool(e.get("paddleocr")) and e["paddleocr"].lower() == e["ref"].lower()
-        mixed = bool(re.search(r"[A-Za-z]", e["ref"]) or re.search(r"[A-Za-z]", e["tesseract"]))
-        return (paddle_ok, not mixed)
-    seen, uniq = set(), []
-    for e in sorted(ex, key=order):
-        if e["ref"].lower() not in seen:
-            seen.add(e["ref"].lower())
-            uniq.append(e)
-    both = [e for e in uniq if not order(e)[0]][:7]
-    mixed = [e for e in uniq if e not in both and not order(e)[1]][:5]
-    ex = both + mixed
+    ex = pick_examples(run)
     if ex:
         lines += ["<details><summary><b>Examples: words plain OCR got wrong and daRealKniga got right</b></summary>",
                   "", "| Printed | Tesseract alone | PaddleOCR alone | daRealKniga |", "|---|---|---|---|"]
@@ -237,3 +245,58 @@ def update_readme(run):
         raise RuntimeError(f"README.md has no {START} … {END} markers")
     with open(README, "w", encoding="utf-8") as f:
         f.write(s)
+
+
+# ------------------------------------------------------------------ project page (docs/index.html)
+
+def site_section(run):
+    """The benchmark part of the project page: summary, table and examples, as HTML."""
+    sm = summary(run)
+    o = [START]
+    if sm:
+        parts = [f"<strong>{v:.1f}&times; fewer words</strong> than {escape(LABELS[k])}" for k, v in sm.items()]
+        o.append(f'<p class="lead">daRealKniga misreads on average {" and ".join(parts)}.</p>')
+    o.append('<img class="chart" src="benchmark.svg" alt="Words misread by Tesseract alone, PaddleOCR alone '
+             'and daRealKniga, per sample (lower is better)">')
+    o.append('<div class="scroll"><table class="results"><thead><tr><th>Sample</th><th>Tesseract alone</th>'
+             '<th>PaddleOCR alone</th><th>daRealKniga</th></tr></thead><tbody>')
+    for r in run["samples"].values():
+        cells = []
+        for k in ("tesseract", "paddleocr", "darealkniga"):
+            s = r["systems"].get(k)
+            v = f"{100 * s['word_f1']:.1f}%" if s else "–"
+            cells.append(f'<td class="num{" best" if k == "darealkniga" else ""}">{v}</td>')
+        o.append(f'<tr><td>{escape(r["title"])}<small>{escape(r["description"])}</small></td>{"".join(cells)}</tr>')
+    o.append("</tbody></table></div>")
+    o.append('<p class="note">Word accuracy: the share of words read exactly right. A Latin letter in place of '
+             'its Cyrillic look-alike counts as an error, because the word can no longer be found by search.</p>')
+    ex = pick_examples(run)
+    if ex:
+        b = lambda s: f'<b class="wrong">{s}</b>'
+        o.append('<h3>Words plain OCR got wrong</h3><div class="scroll"><table class="examples"><thead><tr>'
+                 '<th>Printed</th><th>Tesseract alone</th><th>PaddleOCR alone</th><th>daRealKniga</th></tr></thead>'
+                 '<tbody>')
+        for e in ex:
+            cells = [_mark(e[k] if k != "paddleocr" else e.get(k), e["ref"], b, escape)
+                     for k in ("tesseract", "paddleocr", "darealkniga")]
+            o.append(f'<tr><td>{escape(e["ref"])}</td>' + "".join(f"<td>{c}</td>" for c in cells) + "</tr>")
+        o.append('</tbody></table></div><p class="note"><b class="wrong">Highlighted</b> letters come from the '
+                 'wrong alphabet: they look identical on screen, but the word can\'t be searched.</p>')
+    env = run.get("environment", {})
+    o.append(f'<p class="note">Measured {run["date"]} with daRealKniga {escape(env.get("darealkniga", "?"))}, '
+             f'Tesseract {escape(env.get("tesseract", "?"))} and PaddleOCR {escape(env.get("paddleocr", "?"))}. '
+             'All three read the same page images with the same OCR models.</p>')
+    o.append(END)
+    return "\n".join(o)
+
+
+def update_site(run):
+    try:
+        with open(SITE, encoding="utf-8") as f:
+            s = f.read()
+    except OSError:
+        return
+    if START in s and END in s:
+        s = s[:s.index(START)] + site_section(run) + s[s.index(END) + len(END):]
+        with open(SITE, "w", encoding="utf-8") as f:
+            f.write(s)

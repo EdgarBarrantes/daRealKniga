@@ -11,6 +11,14 @@ small. It also writes the recognised text as a plain `.txt` file.
 > **книга** (*kniga*) means "book" in Bulgarian and Russian, as in most Slavic languages, and
 > **да** (*da*) means "yes". A real book, with real, searchable text.
 
+<p align="center"><img src="docs/demo.gif" width="640" alt="daRealKniga in 20 seconds: a curled phone photo of a Bulgarian/English page goes in, a clean searchable PDF comes out, and plain OCR's errors are compared side by side"></p>
+
+<sub>A real run: the window processing a phone photo, a search in the PDF it writes, and
+plain Tesseract's reading of the same photo for comparison. Regenerate with
+`python packaging/make_demo.py`.</sub>
+
+**Project page:** https://edgarbarrantes.github.io/daRealKniga/
+
 ### Who it's for
 
 - **Slavic languages first.**
@@ -19,6 +27,17 @@ small. It also writes the recognised text as a plain `.txt` file.
   - English.
   - It works with any language Tesseract supports, but the defaults, tests and
     corrections are tuned for Slavic + English.
+- **Old and long books, archives and libraries.** It's built for digitising whole books
+  and collections, not just single pages:
+  - **The original stays intact.** DjVu scans keep their page images exactly as they are,
+    with an invisible text layer added. A PDF and a plain-text file are written next to them.
+  - **Long books.** Hundreds of pages are processed in parallel. An interrupted run resumes
+    where it stopped, and `--pages 1-20` tries the settings on a few pages first.
+  - **Old print and paper.** Every page ends up the same size, even when the scans don't
+    match. Photographed pages are flattened and their paper whitened. The tests include
+    Bulgarian and Russian editions from the 1970s.
+  - **Catalogue details.** The title and author are stored in the PDF.
+  - **Private.** Everything runs on your own computer; nothing is uploaded.
 - **Mixed Cyrillic and Latin text.** This is where daRealKniga stands out: language
   textbooks, dictionaries, bilingual documents, Cyrillic text with English terms, product
   names on receipts.
@@ -89,7 +108,7 @@ Across the samples, daRealKniga misreads on average **2.2× fewer words** than T
 
 </details>
 
-<sub>Last run 2026-10-08 · daRealKniga 0.1.0 · Tesseract 5.3.4 · PaddleOCR 3.7.0. Reproduce with `python tests/accuracy.py --save`; see [Tests](#tests).</sub>
+<sub>Last run 2026-10-08 · daRealKniga 0.3.0 · Tesseract 5.3.4 · PaddleOCR 3.7.0. Reproduce with `python tests/accuracy.py --save`; see [Tests](#tests).</sub>
 
 <!-- benchmark:end -->
 

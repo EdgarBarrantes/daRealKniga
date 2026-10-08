@@ -1,8 +1,8 @@
 {
  "date": "2026-10-08",
- "commit": "85bfabc+changes",
+ "commit": "d0dcd55",
  "environment": {
-  "darealkniga": "0.1.0",
+  "darealkniga": "0.3.0",
   "paddleocr": "3.7.0",
   "paddlepaddle": "3.2.2",
   "tesseract": "5.3.4"
