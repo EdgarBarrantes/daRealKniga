@@ -1,3 +1,6 @@
+# Fast checks on every push and pull request: unit and interface tests (about a minute).
+# The accuracy tests download sample books and OCR models and take several minutes;
+# run them locally with `pytest -m accuracy`.
 name: Tests
 
 on:
@@ -7,7 +10,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -17,20 +20,10 @@ jobs:
       - name: System packages
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq tesseract-ocr djvulibre-bin libegl1 libxkbcommon0 libfontconfig1
+          sudo apt-get install -y -qq libegl1 libxkbcommon0 libfontconfig1
       - name: Install
         run: pip install -e ".[gui,test]"
-      - name: Cache sample books and OCR models
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/realkniga
-            ~/.paddlex
-          key: realkniga-data-${{ hashFiles('tests/accuracy.py') }}
-          restore-keys: realkniga-data-
       - name: Unit and interface tests
         run: pytest -m "not accuracy"
         env:
           QT_QPA_PLATFORM: offscreen
-      - name: Accuracy tests (a few pages of real books)
-        run: pytest -m accuracy

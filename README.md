@@ -26,9 +26,9 @@ small. It also writes the recognised text as a plain `.txt` file.
   - **What realKniga does.** It combines two OCR engines (Tesseract and PaddleOCR) and
     resolves every word with dictionaries and the script of the surrounding words.
 - **Not only books.** It handles a whole scanned book, a phone photo of a single receipt,
-  printed or typed notes, letters, forms or a stack of document photos. Handwriting is not
-  supported. Photos are
-  flattened, the lighting is evened out and the paper is whitened before OCR.
+  printed or typed notes, letters, forms or a stack of document photos (handwriting is not
+  supported). Photos are flattened, the lighting is evened out and the paper is whitened
+  before OCR.
 
 ### What goes in and what comes out
 
@@ -45,9 +45,10 @@ different resolutions.
 
 ## Download (Linux AppImage)
 
-The easiest way is the AppImage from the [Releases page](../../releases/latest), you can also [build it yourself](#building-the-appimage). It has
-everything bundled: Python, PaddleOCR, Tesseract 5, DjVuLibre and the interface.
-The command itself is lowercase: `realkniga`.
+The easiest way is the AppImage from the [Releases page](../../releases/latest); you can
+also [build it yourself](#building-the-appimage). It has everything bundled: Python,
+PaddleOCR, Tesseract 5, DjVuLibre and the interface. The command itself is lowercase:
+`realkniga`.
 
 ```bash
 chmod +x realkniga-*-x86_64.AppImage
@@ -58,7 +59,8 @@ chmod +x realkniga-*-x86_64.AppImage
 - **Systems.** It runs on 64-bit Linux distributions from about 2022 onwards (glibc 2.35+).
 - **No FUSE?** On systems without FUSE (`libfuse2`), use the `.tar.gz` from the same
   release: extract it and run `realkniga-<version>/AppRun`.
-- **First run.** The first document downloads the OCR models (~150 MB).
+- **First run.** The first document downloads the OCR models: about 45 MB, plus 10–15 MB
+  for each Tesseract language you use.
 
 ### Using the window
 
@@ -81,6 +83,9 @@ parallelism and clean-up.
 
 ## Install from source
 
+realKniga is developed and tested on Linux. Installing from source on macOS may work, but
+it is untested. Windows is not supported (WSL may work).
+
 Needs Python 3.10+, plus:
 
 - **Tesseract 4+** (`sudo apt install tesseract-ocr` / `brew install tesseract`), or **Docker**:
@@ -90,13 +95,15 @@ Needs Python 3.10+, plus:
 - **DjVuLibre**, for DjVu input only (`sudo apt install djvulibre-bin` / `brew install djvulibre`).
 
 ```bash
+git clone https://github.com/EdgarBarrantes/realkniga.git
+cd realkniga
 ./install.sh            # creates .venv, installs, links ~/.local/bin/realkniga
-GPU=1 ./install.sh      # same, with the CUDA build of PaddlePaddle
 realkniga doctor        # checks every dependency
 realkniga gui           # the window (or realkniga-gui)
 ```
 
-The first run downloads the PaddleOCR / UVDoc models (~100 MB) to `~/.paddlex`.
+On first use, the PaddleOCR and UVDoc models (about 45 MB) are downloaded to `~/.paddlex`.
+Tesseract language models are downloaded to `~/.cache/realkniga/tessdata`.
 
 ## Use
 
@@ -216,6 +223,9 @@ Selection, copy and search therefore line up with the printed words in any PDF v
 .venv/bin/python tests/accuracy.py # just the accuracy table
 ```
 
+[GitHub Actions](.github/workflows/tests.yml) runs the fast unit and interface tests on
+every push and pull request; run the accuracy tests locally before larger changes.
+
 The **accuracy tests** take a few pages from public books on the Internet Archive that
 already have a good text layer. Each sample is cut out with its text layer removed, processed
 by realKniga, and the text read back from every output (PDF, DjVu, TXT) is scored against
@@ -273,6 +283,15 @@ and `SHA256SUMS`.
   in with their libraries using linuxdeploy. Every downloaded tool is checked against a
   pinned SHA-256.
 - **Checks.** The build runs `doctor` and opens the window offscreen before packing.
+
+## Contributing
+
+Pull requests are welcome.
+- **Before opening one**, run `pytest`.
+- **For OCR changes**, compare the accuracy table before and after.
+- **For a new kind of document or language**, add a short sample to `tests/accuracy.py`.
+  Use a few pages of a public-domain or openly licensed source that already has a good text
+  layer.
 
 ## Reporting problems and ideas
 
