@@ -455,7 +455,8 @@ and `SHA256SUMS`.
 
 ## Contributing
 
-Pull requests are welcome.
+Pull requests are welcome. [ROADMAP.md](ROADMAP.md) lists ideas for future work, from
+accuracy fixes to archival formats and packaged macOS and Windows apps.
 - **Before opening one**, run `pytest`.
 - **For OCR changes**, compare the accuracy table before and after.
 - **For a new kind of document or language**, add a short sample to `tests/accuracy.py`.
