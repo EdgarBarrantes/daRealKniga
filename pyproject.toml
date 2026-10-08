@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "darealkniga"
-version = "0.1.0"
+version = "0.3.0"
 description = "OCR for Slavic and English documents (books, scans, photos, receipts) in Cyrillic, Latin or both mixed: clean, searchable PDF/DjVu"
 readme = "README.md"
 license = { text = "MIT" }
@@ -39,7 +39,7 @@ darealkniga-gui = "darealkniga.gui:main"
 packages = ["darealkniga"]
 
 [tool.setuptools.package-data]
-darealkniga = ["data/*"]
+darealkniga = ["data/*", "data/i18n/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

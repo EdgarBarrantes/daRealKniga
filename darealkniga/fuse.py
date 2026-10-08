@@ -306,7 +306,7 @@ def _choose(t, p, line_script):
 
 def read_tess(path, scale):
     lines = {}
-    with open(path, newline="") as f:
+    with open(path, newline="", encoding="utf-8") as f:
         for row in csv.DictReader(f, delimiter="\t", quoting=csv.QUOTE_NONE):
             if row["level"] != "5":
                 continue

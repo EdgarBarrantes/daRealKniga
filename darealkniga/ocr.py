@@ -64,7 +64,7 @@ def ensure_docker_image():
 
 
 RUN_SH = """#!/bin/sh
-# $1 image  $2 output base  $3 dpi
+# (Docker only) $1 image  $2 output base  $3 dpi
 tesseract --tessdata-dir "$TESSDATA" "$1" "$2.part" -l "$LANGS" --psm 3 --dpi "$3" \\
   -c tessedit_create_tsv=1 -c tessedit_create_txt=0 >/dev/null 2>&1 && mv "$2.part.tsv" "$2.tsv"
 """
@@ -78,15 +78,17 @@ def run_tesseract(jobs, langs, workdir, tessdata, threads, backend=None):
     ensure_tessdata(langs, tessdata)
     backend = tesseract_backend(backend)
     workdir = os.path.abspath(workdir)
-    script = os.path.join(workdir, "tesseract.sh")
-    with open(script, "w") as f:
-        f.write(RUN_SH)
     pr = Progress(f"tesseract ({backend})", len(todo))
     if backend == "local":
-        env = dict(os.environ, OMP_THREAD_LIMIT="1", TESSDATA=tessdata, LANGS=langs)
+        env = dict(os.environ, OMP_THREAD_LIMIT="1")
 
         def one(j):
-            subprocess.run(["sh", script, j[0], j[1], str(j[2])], env=env)
+            img, out, dpi = j
+            r = subprocess.run(["tesseract", "--tessdata-dir", tessdata, img, out + ".part", "-l", langs,
+                                "--psm", "3", "--dpi", str(dpi), "-c", "tessedit_create_tsv=1",
+                                "-c", "tessedit_create_txt=0"], env=env, capture_output=True)
+            if r.returncode == 0 and os.path.exists(out + ".part.tsv"):
+                os.replace(out + ".part.tsv", out + ".tsv")
             return j
 
         with ThreadPoolExecutor(threads) as ex:
@@ -94,12 +96,16 @@ def run_tesseract(jobs, langs, workdir, tessdata, threads, backend=None):
                 pr.step()
     else:
         ensure_docker_image()
+        with open(os.path.join(workdir, "tesseract.sh"), "w", encoding="utf-8", newline="\n") as f:
+            f.write(RUN_SH)
         rel = lambda p: "/w/" + os.path.relpath(os.path.abspath(p), workdir)
         lst = os.path.join(workdir, "tesseract.jobs")
-        with open(lst, "w") as f:
+        with open(lst, "w", encoding="utf-8", newline="\n") as f:
             for img, out, dpi in todo:
                 f.write(f"{rel(img)} {rel(out)} {dpi}\n")
-        cmd = ["docker", "run", "--rm", "-u", f"{os.getuid()}:{os.getgid()}",
+        # run as the current user on Linux so the files written stay ours (no uids on Windows)
+        user = ["-u", f"{os.getuid()}:{os.getgid()}"] if hasattr(os, "getuid") else []
+        cmd = ["docker", "run", "--rm", *user,
                "-e", "OMP_THREAD_LIMIT=1", "-e", "TESSDATA=/tessdata", "-e", f"LANGS={langs}",
                "-v", f"{workdir}:/w", "-v", f"{tessdata}:/tessdata:ro", DOCKER_IMAGE,
                "sh", "-c", f"xargs -P {threads} -L 1 sh /w/tesseract.sh < /w/tesseract.jobs"]

@@ -1,4 +1,5 @@
-# Fast checks on every push and pull request: unit and interface tests (about a minute).
+# Fast checks on every push and pull request: unit and interface tests on Linux, macOS and
+# Windows, plus a one-page OCR run on each (a few minutes, mostly installing).
 # The accuracy tests download sample books and OCR models and take several minutes;
 # run them locally with `pytest -m accuracy`.
 name: Tests
@@ -9,21 +10,57 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-14, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    env:
+      QT_QPA_PLATFORM: offscreen
+      PYTHONUTF8: "1"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
-      - name: System packages
+      - name: System packages (Linux)
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq libegl1 libxkbcommon0 libfontconfig1
+          sudo apt-get install -y -qq libegl1 libxkbcommon0 libfontconfig1 tesseract-ocr
+      - name: Tesseract (macOS)
+        if: runner.os == 'macOS'
+        run: brew install tesseract
+      - name: Tesseract (Windows)
+        if: runner.os == 'Windows'
+        run: choco install tesseract -y --no-progress
       - name: Install
         run: pip install -e ".[gui,test]"
       - name: Unit and interface tests
         run: pytest -m "not accuracy"
-        env:
-          QT_QPA_PLATFORM: offscreen
+      - name: Check the installation
+        run: darealkniga doctor
+      - name: OCR one page (Cyrillic file name)
+        run: |
+          python - <<'EOF'
+          from PIL import Image, ImageDraw, ImageFont
+          im = Image.new("L", (1700, 500), 255)
+          d = ImageDraw.Draw(im)
+          f = ImageFont.load_default(size=56)
+          d.text((80, 100), "The quick brown fox jumps over the lazy dog.", font=f, fill=0)
+          d.text((80, 260), "Searchable pages from scans and photos.", font=f, fill=0)
+          im.save("страница.png", dpi=(300, 300))
+          EOF
+          drk make страница.png --lang eng -o out
+          python - <<'EOF'
+          import glob
+          text = open(glob.glob("out/*.txt")[0], encoding="utf-8").read()
+          print(text)
+          assert "quick" in text and "Searchable" in text, "OCR text missing"
+          assert glob.glob("out/*.pdf"), "no PDF written"
+          EOF

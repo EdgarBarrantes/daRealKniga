@@ -83,3 +83,25 @@ def test_folder_of_photos(tmp_path):
         Image.new("RGB", (20, 30), "white").save(tmp_path / f"p{i}.jpg")
     kind, desc = gui.describe_input(str(tmp_path))
     assert kind == "photo" and "3 page images" in desc
+
+
+def test_switching_language_keeps_entries(window, pdf_book):
+    from darealkniga import i18n
+    w = window(pdf_book)
+    w.lang.setCurrentIndex(w.lang.findData("rus"))
+    w.author.setText("Иван Вазов")
+    w.adv_btn.setChecked(True)
+    w.color.setCurrentIndex(w.color.findData("always"))
+    try:
+        w.ui_lang.setCurrentIndex(w.ui_lang.findData("bg"))
+        w.switch_language()
+        assert w.go.text() == "Разпознай текста"
+        assert "3 страници" in w.in_desc.text()
+        assert w.lang.currentText().startswith("Руски")
+        a = w.build_args()
+        assert a[a.index("--lang") + 1] == "rus" and a[a.index("--color") + 1] == "always"
+        assert a[a.index("--author") + 1] == "Иван Вазов" and w.adv_btn.isChecked()
+        assert w.stage.text() == "Може да започнете."
+    finally:
+        i18n.set_language("en")
+        w.settings.remove("ui_lang")

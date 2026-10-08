@@ -6,6 +6,7 @@ import subprocess
 import sys
 
 from . import __version__
+from .util import extend_path
 
 EPILOG = """`drk` is a short form of `darealkniga`: both commands are the same.
 
@@ -81,6 +82,14 @@ def build_parser():
     return ap
 
 
+INSTALL_HINTS = {
+    "linux": {"djvu": "install djvulibre-bin", "tesseract": "install tesseract-ocr or Docker"},
+    "darwin": {"djvu": "brew install djvulibre", "tesseract": "brew install tesseract"},
+    "win32": {"djvu": "install DjVuLibre from djvu.sourceforge.net",
+              "tesseract": "install Tesseract: winget install UB-Mannheim.TesseractOCR"},
+}.get(sys.platform, {"djvu": "install DjVuLibre", "tesseract": "install Tesseract 4+ or Docker"})
+
+
 def doctor():
     ok = True
 
@@ -98,7 +107,7 @@ def doctor():
         except Exception as e:  # noqa: BLE001
             row(name, False, str(e).splitlines()[0])
     for t in ("ddjvu", "djvused", "djvudump"):
-        row(f"(optional) {t} (DjVu input)", shutil.which(t), "" if shutil.which(t) else "install djvulibre-bin")
+        row(f"(optional) {t} (DjVu input)", shutil.which(t), "" if shutil.which(t) else INSTALL_HINTS["djvu"])
     tess = shutil.which("tesseract")
     dock = shutil.which("docker")
     if tess:
@@ -108,7 +117,7 @@ def doctor():
         row("(optional) tesseract (local)", False, "not found; Docker will be used")
     if not tess:
         d_ok = dock and subprocess.run(["docker", "info"], capture_output=True).returncode == 0
-        row("docker (for Tesseract)", d_ok, "" if d_ok else "install tesseract-ocr or Docker")
+        row("docker (for Tesseract)", d_ok, "" if d_ok else INSTALL_HINTS["tesseract"])
     from .ocr import tessdata_dir
     d = tessdata_dir()
     have = sorted(f[:-12] for f in os.listdir(d) if f.endswith(".traineddata"))
@@ -118,6 +127,13 @@ def doctor():
 
 
 def main(argv=None):
+    # file names and text are often Cyrillic: never fail on a console or pipe with another encoding
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):
+            pass
+    extend_path()
     args = build_parser().parse_args(argv)
     if args.cmd == "doctor":
         sys.exit(doctor())

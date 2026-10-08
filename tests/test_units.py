@@ -4,7 +4,7 @@ import pikepdf
 import pytest
 from PIL import Image
 
-from darealkniga import enhance, fuse, langs, pdf, textlayer
+from darealkniga import enhance, fuse, i18n, langs, pdf, textlayer
 from darealkniga.util import natural_key, parse_pages
 
 import accuracy
@@ -157,3 +157,93 @@ def test_score_metrics():
     s = accuracy.score("Мама мия ри-\nбата днес", "мама мие рибата днес")
     assert s["words"] == 4 and s["word_recall"] == pytest.approx(0.75)
     assert 0.9 < s["char_acc"] < 1
+
+
+# ---------------------------------------------------------------- interface translations
+
+def _ui_strings():
+    """Every string the window passes to tr() / trn(), read from the source."""
+    import ast
+    import os
+    src = os.path.join(os.path.dirname(i18n.__file__), "gui.py")      # read, not imported: no Qt needed
+    tree = ast.parse(open(src, encoding="utf-8").read())
+    plain, counted = set(), set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign) and getattr(node.targets[0], "id", "") in ("LANGUAGE_NAMES", "STAGES"):
+            plain |= set(ast.literal_eval(node.value).values())
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.args \
+                and isinstance(node.args[0], ast.Constant) and isinstance(node.args[0].value, str):
+            if node.func.id == "tr":
+                plain.add(node.args[0].value)
+            elif node.func.id == "trn":
+                counted.add(node.args[0].value)
+    return plain, counted
+
+
+@pytest.mark.parametrize("code", [c for c in i18n.CODES if c != "en"])
+def test_catalog_complete(code):
+    import string
+    plain, counted = _ui_strings()
+    cat = i18n.load(code)
+    assert plain | counted <= set(cat), f"{code}: missing {sorted((plain | counted) - set(cat))}"
+    fields = lambda s: {f for _, f, _, _ in string.Formatter().parse(s) if f}
+    for key in plain:
+        assert isinstance(cat[key], str) and fields(cat[key]) == fields(key), (code, key)
+    for key in counted:
+        forms = cat[key]
+        assert isinstance(forms, list) and len(forms) == i18n.NFORMS[code], (code, key)
+        assert all(fields(f) == fields(key) for f in forms), (code, key)
+
+
+def test_plural_rules():
+    try:
+        i18n.set_language("ru")
+        assert [i18n.trn("{n} page", "{n} pages", n) for n in (1, 3, 5, 11, 21, 22, 112)] == \
+            ["1 страница", "3 страницы", "5 страниц", "11 страниц", "21 страница", "22 страницы", "112 страниц"]
+        i18n.set_language("pl")
+        assert [i18n.trn("{n} page", "{n} pages", n) for n in (1, 2, 5, 22, 25)] == \
+            ["1 strona", "2 strony", "5 stron", "22 strony", "25 stron"]
+        i18n.set_language("sl")
+        assert [i18n.trn("{n} page", "{n} pages", n) for n in (1, 2, 3, 5, 101)] == \
+            ["1 stran", "2 strani", "3 strani", "5 strani", "101 stran"]
+        i18n.set_language("ro")
+        assert [i18n.trn("{n} page", "{n} pages", n) for n in (1, 2, 19, 20, 101)] == \
+            ["1 pagină", "2 pagini", "19 pagini", "20 de pagini", "101 de pagini"]
+        i18n.set_language("lt")
+        assert [i18n.trn("{n} page", "{n} pages", n) for n in (1, 2, 10, 11, 21)] == \
+            ["1 puslapis", "2 puslapiai", "10 puslapių", "11 puslapių", "21 puslapis"]
+        i18n.set_language("fr")
+        assert [i18n.trn("{n} page", "{n} pages", n) for n in (0, 1, 2)] == ["0 page", "1 page", "2 pages"]
+        assert i18n.number(12345) == "12\u00a0345"
+        i18n.set_language("de")
+        assert i18n.number(12345) == "12.345"
+        i18n.set_language("sr_Latn")
+        assert i18n.tr("Ready.") == "Spremno." and i18n.tr("Choose folder…") == "Izaberi fasciklu…"
+    finally:
+        i18n.set_language("en")
+    assert i18n.trn("{n} page", "{n} pages", 1) == "1 page" and i18n.number(12345) == "12,345"
+
+
+def test_language_from_locale():
+    assert i18n.match(["bg-BG", "en-US"]) == "bg"
+    assert i18n.match(["ja-JP", "pl-PL"]) == "pl"
+    assert i18n.match(["sr-Latn-RS"]) == "sr_Latn"
+    assert i18n.match(["sr_RS@latin"]) == "sr_Latn"
+    assert i18n.match(["sr-RS"]) == "sr"
+    assert i18n.match(["uk_UA.UTF-8"]) == "uk"
+    assert i18n.match(["nn-NO"]) == "nb" and i18n.match(["pt-BR"]) == "pt" and i18n.match(["de-AT"]) == "de"
+    assert i18n.match(["ja-JP"]) == "en"
+    assert i18n.set_language("xx") == "en"
+
+
+def test_worker_processes_spawn():
+    """Windows and macOS start worker processes with spawn (no fork); results keep their order."""
+    from darealkniga.util import pool_map
+    assert pool_map(abs, [-3, 2, -1], 2, "abs", spawn=True) == [3, 2, 1]
+
+
+def test_main_module_is_guarded():
+    """Spawned workers re-import __main__; running `python -m darealkniga` must not start again there."""
+    import os
+    src = open(os.path.join(os.path.dirname(i18n.__file__), "__main__.py"), encoding="utf-8").read()
+    assert 'if __name__ == "__main__":' in src

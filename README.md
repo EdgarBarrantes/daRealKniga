@@ -93,6 +93,22 @@ Across the samples, daRealKniga misreads on average **2.2× fewer words** than T
 
 <!-- benchmark:end -->
 
+## Get it
+
+| System | How |
+|---|---|
+| **Linux** (64-bit, about 2022 onwards) | The ready-made [AppImage](#download-linux-appimage), or [from source](#install-on-linux-from-source) |
+| **macOS** (Apple Silicon or Intel) | [Install on macOS](#install-on-macos) |
+| **Windows** 10 or 11 (64-bit) | [Install on Windows](#install-on-windows) |
+
+There's no ready-made app for macOS or Windows yet: you install it with a few commands
+instead. The window and the command line work the same on all three.
+
+> **macOS and Windows support is a work in progress.** It's tested automatically on both,
+> but has seen far less real use than Linux. If something doesn't work, or the instructions
+> are unclear, please [open an issue](../../issues/new/choose): feedback from Mac and
+> Windows users is much appreciated.
+
 ## Download (Linux AppImage)
 
 The easiest way is the AppImage from the [Releases page](../../releases/latest); you can
@@ -116,7 +132,7 @@ chmod +x darealkniga-*-x86_64.AppImage
 
 1. **Choose the document.** Drop a `.djvu`, a `.pdf`, a photo or a folder of photos on the
    window, or use **Choose file…** / **Choose folder…**.
-2. **Settings.** Pick the language and optionally a title and author. For text that mixes
+2. **Settings.** Pick the **text language** and optionally a title and author. For text that mixes
    alphabets, pick a "+ English" option such as **Bulgarian + English**. The results are
    saved next to the input unless you choose another folder. For a long book, try `1-20` in
    **Pages** first.
@@ -131,20 +147,40 @@ chmod +x darealkniga-*-x86_64.AppImage
 **Advanced settings** has the OCR engine, page size, colour handling, flattening,
 parallelism and clean-up.
 
+**Interface language.** The window is available in 31 languages:
+- **Slavic:** Belarusian, Bosnian, Bulgarian, Croatian, Czech, Macedonian, Polish, Russian,
+  Serbian (Cyrillic and Latin), Slovak, Slovenian and Ukrainian.
+- **Other European:** Catalan, Danish, Dutch, English, Estonian, Finnish, French, German,
+  Greek, Hungarian, Italian, Latvian, Lithuanian, Norwegian, Portuguese, Romanian, Spanish
+  and Swedish.
+
+It starts in your system's language when it's one of these, and the menu at the top right
+switches it at any time without losing what you've entered. The text language on first
+start follows the interface language (Polish interface, Polish text), and can be changed
+as usual. The log under **Details** and the command line stay in English.
+
 ## Install from source
 
-daRealKniga is developed and tested on Linux. Installing from source on macOS may work, but
-it is untested. Windows is not supported (WSL may work).
+All three systems need:
+- **Python 3.10 to 3.13.** PaddleOCR doesn't support newer versions yet.
+- **Tesseract 4 or newer.** On Linux, **Docker** works instead: without a local
+  `tesseract`, daRealKniga builds a small Tesseract image and uses that.
+- **DjVuLibre**, only for DjVu input.
+- About **2 GB** of disk space for the Python packages.
 
-Needs Python 3.10+, plus:
+Commands below install into a `.venv` folder inside the downloaded repository; deleting the
+folder removes everything. `drk` is a short form of the same command: `drk make book.pdf
+--lang bul` works exactly like `darealkniga make book.pdf --lang bul`.
 
-- **Tesseract 4+** (`sudo apt install tesseract-ocr` / `brew install tesseract`), or **Docker**:
-  if no local `tesseract` exists, daRealKniga builds a small Tesseract image and uses that.
-  Language models (`tessdata_best`, the most accurate ones) are downloaded automatically
-  to `~/.cache/darealkniga/tessdata`.
-- **DjVuLibre**, for DjVu input only (`sudo apt install djvulibre-bin` / `brew install djvulibre`).
+On first use, the PaddleOCR and UVDoc models (about 45 MB) are downloaded to `~/.paddlex`.
+Tesseract language models (`tessdata_best`, the most accurate ones, 10–15 MB each) are
+downloaded to `~/.cache/darealkniga/tessdata` (on Windows, `.cache\darealkniga\tessdata`
+in your user folder).
+
+### Install on Linux (from source)
 
 ```bash
+sudo apt install git python3-venv tesseract-ocr djvulibre-bin   # Debian/Ubuntu; similar elsewhere
 git clone https://github.com/EdgarBarrantes/daRealKniga.git
 cd daRealKniga
 ./install.sh            # creates .venv, installs, links darealkniga and drk into ~/.local/bin
@@ -152,11 +188,71 @@ darealkniga doctor      # checks every dependency
 darealkniga gui         # the window (or darealkniga-gui)
 ```
 
-`drk` is a short form of the same command: `drk make book.pdf --lang bul` works exactly
-like `darealkniga make book.pdf --lang bul`.
+### Install on macOS
 
-On first use, the PaddleOCR and UVDoc models (about 45 MB) are downloaded to `~/.paddlex`.
-Tesseract language models are downloaded to `~/.cache/darealkniga/tessdata`.
+*Work in progress: feedback is much appreciated, see [Get it](#get-it).*
+
+Works on Apple Silicon and Intel Macs. It uses [Homebrew](https://brew.sh); install that
+first if you don't have it.
+
+```bash
+brew install python@3.12 tesseract djvulibre git
+git clone https://github.com/EdgarBarrantes/daRealKniga.git
+cd daRealKniga
+PYTHON=python3.12 ./install.sh   # creates .venv, installs, links darealkniga and drk into ~/.local/bin
+```
+
+`~/.local/bin` isn't on the macOS `PATH` by default. Add it once, then open a new Terminal
+window:
+
+```bash
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zprofile
+```
+
+After that:
+
+```bash
+darealkniga doctor      # checks every dependency
+darealkniga gui         # the window
+drk make book.pdf --lang rus+eng
+```
+
+The window is started from Terminal for now; there's no app in the Applications folder
+yet. Tesseract and DjVuLibre from Homebrew are found even when they aren't on the `PATH`.
+
+### Install on Windows
+
+*Work in progress: feedback is much appreciated, see [Get it](#get-it).*
+
+Works on 64-bit Windows 10 and 11 on Intel or AMD processors. Windows on ARM isn't
+supported, because PaddleOCR has no build for it. Run these in **PowerShell**:
+
+```powershell
+winget install Python.Python.3.12
+winget install Git.Git
+winget install UB-Mannheim.TesseractOCR
+```
+
+Then close and reopen PowerShell, so it picks up the new programs, and run:
+
+```powershell
+git clone https://github.com/EdgarBarrantes/daRealKniga.git
+cd daRealKniga
+powershell -ExecutionPolicy Bypass -File install.ps1    # creates .venv and installs
+.venv\Scripts\darealkniga-gui.exe                       # the window
+.venv\Scripts\drk.exe make book.pdf --lang bul+eng       # command line
+```
+
+- **Shortcut to the window.** Create a desktop shortcut to `.venv\Scripts\darealkniga-gui.exe`
+  to open the window without PowerShell.
+- **Commands anywhere.** At the end, `install.ps1` prints how to add the commands to your
+  `PATH`, so that `darealkniga` and `drk` work in any folder.
+- **Where it finds the tools.** Tesseract is found in its usual install folder
+  (`C:\Program Files\Tesseract-OCR`), even though its installer doesn't add it to the `PATH`.
+- **DjVu input.** For DjVu files, also install
+  [DjVuLibre for Windows](https://sourceforge.net/projects/djvu/files/DjVuLibre_Windows/).
+  It's found in its usual install folder too.
+- **Check it.** `.venv\Scripts\darealkniga.exe doctor` checks that everything is in place.
 
 ## Use
 
@@ -277,7 +373,8 @@ Selection, copy and search therefore line up with the printed words in any PDF v
 ```
 
 [GitHub Actions](.github/workflows/tests.yml) runs the fast unit and interface tests on
-every push and pull request; run the accuracy tests locally before larger changes.
+Linux, macOS and Windows for every push and pull request, plus a one-page OCR run on each
+system. Run the accuracy tests locally before larger changes.
 
 The **accuracy tests** process a few pages per sample, with any existing text layer
 removed. The text is then read back from every output (PDF, DjVu, TXT) and scored against
@@ -345,6 +442,15 @@ Pull requests are welcome.
 - **For a new kind of document or language**, add a short sample to `tests/accuracy.py`.
   Use a few pages of a public-domain or openly licensed source that already has a good text
   layer.
+- **Translations.** The interface texts are in `darealkniga/data/i18n/<language>.json`,
+  one file per language, mapping each English text to its translation. They were written
+  without a native-speaker review, so corrections from native speakers are especially
+  welcome: edit the file and check the result with
+  `DAREALKNIGA_UI_LANG=<code> darealkniga gui`. Texts with a count, like `"{n} page"`, list
+  one form per plural category of the language (see `PLURALS` in `darealkniga/i18n.py`).
+  Serbian Latin is generated from the Serbian Cyrillic file. To add a language, add its
+  file plus an entry in `LANGUAGES` and `PLURALS` in `i18n.py`; `pytest` checks that every
+  file has every text, the same `{placeholders}` and the right number of plural forms.
 
 ## Reporting problems and ideas
 

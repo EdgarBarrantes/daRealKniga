@@ -38,16 +38,18 @@ def page_info(book):
 
 
 def ddjvu(book, page, mode, fmt, sub=None, size=None, out=None):
-    with tempfile.NamedTemporaryFile(suffix="." + fmt) as f:
+    # a folder rather than an open temporary file: Windows doesn't let ddjvu write to a file we hold open
+    with tempfile.TemporaryDirectory() as d:
+        tmp = os.path.join(d, "page." + fmt)
         cmd = ["ddjvu", f"-format={fmt}", f"-mode={mode}", f"-page={page}"]
         if sub:
             cmd.append(f"-subsample={sub}")
         if size:
             cmd.append(f"-size={size[0]}x{size[1]}")
-        subprocess.run(cmd + [book, out or f.name], check=True, capture_output=True)
+        subprocess.run(cmd + [book, out or tmp], check=True, capture_output=True)
         if out:
             return None
-        im = Image.open(f.name)
+        im = Image.open(tmp)
         im.load()
         return im
 

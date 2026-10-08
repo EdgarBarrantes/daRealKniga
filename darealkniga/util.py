@@ -8,6 +8,23 @@ import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
 
+# where Tesseract and DjVuLibre usually live when they are not on PATH (a macOS app started from
+# the Finder doesn't see Homebrew's PATH; the Windows installers don't add themselves to it)
+EXTRA_PATHS = {
+    "darwin": ["/opt/homebrew/bin", "/usr/local/bin", "/opt/local/bin"],
+    "win32": [r"C:\Program Files\Tesseract-OCR", r"C:\Program Files (x86)\Tesseract-OCR",
+              r"C:\Program Files (x86)\DjVuLibre", r"C:\Program Files\DjVuLibre"],
+}
+
+
+def extend_path():
+    """Append the usual install folders of the external tools to PATH, if they exist."""
+    have = os.environ.get("PATH", "").split(os.pathsep)
+    extra = [d for d in EXTRA_PATHS.get(sys.platform, []) if os.path.isdir(d) and d not in have]
+    if extra:
+        os.environ["PATH"] = os.pathsep.join(have + extra)
+
+
 def log(msg):
     print(f"[darealkniga] {msg}", flush=True)
 
@@ -104,7 +121,8 @@ def pool_map(fn, items, jobs, label, initializer=None, initargs=(), spawn=False)
     if not items:
         return []
     jobs = max(1, min(jobs, len(items)))
-    ctx = mp.get_context("spawn" if spawn else "fork")
+    # fork is fast and safe on Linux; Windows has no fork and macOS can crash with it
+    ctx = mp.get_context("fork" if sys.platform.startswith("linux") and not spawn else "spawn")
     pr = Progress(label, len(items))
     res = [None] * len(items)
     with ProcessPoolExecutor(jobs, mp_context=ctx, initializer=initializer, initargs=initargs) as ex:

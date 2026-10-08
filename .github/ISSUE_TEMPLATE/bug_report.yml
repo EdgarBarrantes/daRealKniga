@@ -19,10 +19,12 @@ body:
     attributes:
       label: How do you run darealkniga?
       options:
-        - AppImage (window)
-        - AppImage (command line)
-        - Tarball
-        - pip / install.sh (command line)
+        - Linux, AppImage (window)
+        - Linux, AppImage (command line)
+        - Linux, tarball
+        - Linux, from source (install.sh / pip)
+        - macOS, from source (install.sh / pip)
+        - Windows, from source (install.ps1 / pip)
     validations:
       required: true
   - type: input
