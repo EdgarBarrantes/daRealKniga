@@ -7,7 +7,7 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 QtWidgets = pytest.importorskip("PySide6.QtWidgets")
 import shiboken6  # noqa: E402
 
-from realkniga import gui  # noqa: E402
+from darealkniga import gui  # noqa: E402
 
 
 @pytest.fixture(scope="module")

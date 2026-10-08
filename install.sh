@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Installs realkniga into ./.venv and links the `realkniga` command into ~/.local/bin.
+# Installs darealkniga into ./.venv and links the `darealkniga` command (and its short form
+# `drk`) into ~/.local/bin.
 # System tools (installed separately): djvulibre (DjVu input) and tesseract-ocr or Docker.
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -9,12 +10,14 @@ PY=${PYTHON:-python3}
 .venv/bin/pip install --upgrade pip >/dev/null
 .venv/bin/pip install -e ".[gui]"
 mkdir -p "$HOME/.local/bin"
-ln -sf "$PWD/.venv/bin/realkniga" "$HOME/.local/bin/realkniga"
+ln -sf "$PWD/.venv/bin/darealkniga" "$HOME/.local/bin/darealkniga"
+ln -sf "$PWD/.venv/bin/drk" "$HOME/.local/bin/drk"
 echo
-.venv/bin/realkniga doctor || true
+.venv/bin/darealkniga doctor || true
 cat <<MSG
 
-Installed. Run:  realkniga make <book.djvu | document.pdf | photo.jpg | photos-folder> --lang bul+eng   (or: realkniga gui)
+Installed. Run:  darealkniga make <book.djvu | document.pdf | photo.jpg | photos-folder> --lang bul+eng   (or: darealkniga gui)
+Short form, same command:  drk make book.pdf --lang bul
 (make sure ~/.local/bin is on your PATH)
 Missing system tools?  Debian/Ubuntu:  sudo apt install djvulibre-bin tesseract-ocr
                        macOS:          brew install djvulibre tesseract

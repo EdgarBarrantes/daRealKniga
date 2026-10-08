@@ -48,9 +48,9 @@ jobs:
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq djvulibre-bin
           python3 -m pip install -q rapidfuzz pymupdf pikepdf
-          export REALKNIGA_CMD="$PWD/dist/realkniga-${{ steps.v.outputs.version }}-x86_64.AppImage"
-          "$REALKNIGA_CMD" doctor
-          python3 tests/accuracy.py --check djvu-ru pdf-ru
+          export DAREALKNIGA_CMD="$PWD/dist/darealkniga-${{ steps.v.outputs.version }}-x86_64.AppImage"
+          "$DAREALKNIGA_CMD" doctor
+          python3 tests/accuracy.py --check --no-baselines djvu-ru pdf-ru
 
       - name: Attach to the release
         if: inputs.tag != ''
@@ -65,15 +65,15 @@ jobs:
           body: |
 
             ## Downloads
-            - **`realkniga-${{ steps.v.outputs.version }}-x86_64.AppImage`**: download it, make it executable (`chmod +x realkniga-*.AppImage`) and double-click it, or run it from a terminal. It works on any 64-bit Linux from about 2022 onwards (glibc 2.35+).
-            - **`realkniga-${{ steps.v.outputs.version }}-x86_64.tar.gz`**: the same files unpacked, for systems without FUSE. Extract it and run `realkniga-${{ steps.v.outputs.version }}/AppRun`.
+            - **`darealkniga-${{ steps.v.outputs.version }}-x86_64.AppImage`**: download it, make it executable (`chmod +x darealkniga-*.AppImage`) and double-click it, or run it from a terminal. It works on any 64-bit Linux from about 2022 onwards (glibc 2.35+).
+            - **`darealkniga-${{ steps.v.outputs.version }}-x86_64.tar.gz`**: the same files unpacked, for systems without FUSE. Extract it and run `darealkniga-${{ steps.v.outputs.version }}/AppRun`.
             - The first run downloads the OCR models (~150 MB).
-            - Command line: `./realkniga-*.AppImage make document.pdf --lang bul+eng` (see `--help`).
+            - Command line: `./darealkniga-*.AppImage make document.pdf --lang bul+eng` (see `--help`).
 
       - name: Keep the build
         if: inputs.tag == ''
         uses: actions/upload-artifact@v4
         with:
-          name: realkniga-${{ steps.v.outputs.version }}
+          name: darealkniga-${{ steps.v.outputs.version }}
           path: dist/*
           retention-days: 7

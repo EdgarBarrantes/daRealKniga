@@ -1,10 +1,10 @@
 [Desktop Entry]
 Type=Application
-Name=realKniga
+Name=daRealKniga
 GenericName=Document OCR
 Comment=Make scanned or photographed books, documents, receipts and notes searchable (Cyrillic and Latin)
-Exec=realkniga %f
-Icon=realkniga
+Exec=darealkniga %f
+Icon=darealkniga
 Terminal=false
 Categories=Office;Graphics;Scanning;OCR;
 MimeType=image/vnd.djvu;application/pdf;image/jpeg;image/png;image/tiff;image/webp;

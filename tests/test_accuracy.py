@@ -1,4 +1,5 @@
-"""End-to-end accuracy tests on a few pages of real books (downloads ~40 MB once, ~2-4 min).
+"""End-to-end accuracy tests: a few pages per sample, daRealKniga against plain Tesseract and
+plain PaddleOCR (downloads ~40 MB once, a few minutes).
 
     pytest -m accuracy            # only these
     pytest -m "not accuracy"      # skip them
@@ -21,28 +22,33 @@ def _needs(sample):
         for t in ("djvused", "djvm", "djvutxt", "ddjvu"):
             if not shutil.which(t):
                 pytest.skip(f"{t} not installed")
+    keys = ["PT_Serif-Regular.ttf", "PT_Serif-Bold.ttf"] if sample.synthetic else \
+        [sample.source] + ([sample.reference] if sample.reference else [])
     try:
-        accuracy.fetch(sample.source)
-        if sample.reference:
-            accuracy.fetch(sample.reference)
+        for k in keys:
+            accuracy.fetch(k)
     except OSError as e:
-        pytest.skip(f"sample book not available: {e}")
+        pytest.skip(f"sample data not available: {e}")
 
 
 @pytest.mark.parametrize("sample", accuracy.SAMPLES, ids=lambda s: s.name)
 def test_accuracy(sample, tmp_path):
     _needs(sample)
-    results, out = accuracy.run(sample, str(tmp_path))
-    assert "pdf" in results, "no PDF written"
-    for ext, sc in results.items():
-        accuracy.RESULTS.append((sample.name, ext, sc))
-    for ext, sc in results.items():
+    systems, outputs, _, out = accuracy.run(sample, str(tmp_path))
+    assert "pdf" in outputs, "no PDF written"
+    accuracy.RESULTS.append((sample.name, systems))
+    for ext, sc in outputs.items():
         assert sc["word_f1"] >= sample.min_word_f1, \
-            f"{sample.name}/{ext}: word F1 {sc['word_f1']:.1%} < {sample.min_word_f1:.0%}"
+            f"{sample.name}/{ext}: word accuracy {sc['word_f1']:.1%} < {sample.min_word_f1:.0%}"
         assert sc["char_acc"] >= sample.min_char_acc, \
             f"{sample.name}/{ext}: char accuracy {sc['char_acc']:.1%} < {sample.min_char_acc:.0%}"
+    # the point of the project: better than either engine on its own
+    for other in ("tesseract", "paddleocr"):
+        if other in systems:
+            assert systems["darealkniga"]["word_f1"] >= systems[other]["word_f1"], \
+                f"{sample.name}: daRealKniga {systems['darealkniga']['word_f1']:.1%} < {other} {systems[other]['word_f1']:.1%}"
     _check_pdf(f"{out}/{sample.name}.pdf", len(sample.pages))
-    if "djvu" in results:
+    if "djvu" in outputs:
         _check_djvu(f"{out}/{sample.name}.djvu", len(sample.pages))
 
 

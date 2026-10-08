@@ -66,7 +66,7 @@ def _image(pdf, s):
 
 
 def glyphless_font(pdf):
-    ttf = (resources.files("realkniga") / "data" / "glyphless.ttf").read_bytes()
+    ttf = (resources.files("darealkniga") / "data" / "glyphless.ttf").read_bytes()
     cid2gid = pdf.make_stream(b"\x00\x01" * 65536)
     cmap = pdf.make_stream(b"""/CIDInit /ProcSet findresource begin
 12 dict begin
@@ -159,7 +159,7 @@ class Writer:
             self.pdf.docinfo["/Title"] = title
         if author:
             self.pdf.docinfo["/Author"] = author
-        self.pdf.docinfo["/Producer"] = producer or "realKniga"
+        self.pdf.docinfo["/Producer"] = producer or "daRealKniga"
         tmp = path + ".part"
         self.pdf.save(tmp, compress_streams=True, object_stream_mode=pikepdf.ObjectStreamMode.generate)
         os.replace(tmp, path)

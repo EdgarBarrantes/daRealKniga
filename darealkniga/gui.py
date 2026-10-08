@@ -1,6 +1,6 @@
 """Desktop interface (Qt / PySide6).
 
-The window collects the settings, runs `realkniga make` in a child process (so a crash or a
+The window collects the settings, runs `darealkniga make` in a child process (so a crash or a
 cancel never takes the window down), and turns its output into a progress bar and a log.
 """
 import os
@@ -50,7 +50,7 @@ QProgressBar::chunk { border-radius: 5px; background: palette(highlight); }
 
 
 def data_path(name):
-    return str(resources.files("realkniga") / "data" / name)
+    return str(resources.files("darealkniga") / "data" / name)
 
 
 def repo_url():
@@ -89,7 +89,7 @@ def describe_input(path):
 
 
 class Runner(QThread):
-    """Runs `realkniga make` and reports its output line by line."""
+    """Runs `darealkniga make` and reports its output line by line."""
     line = Signal(str)
     progress = Signal(str, int, int)
     done = Signal(int, list)
@@ -99,8 +99,8 @@ class Runner(QThread):
         self.args, self.proc, self.outputs = args, None, []
 
     def run(self):
-        env = dict(os.environ, REALKNIGA_PROGRESS="1", PYTHONUNBUFFERED="1")
-        self.proc = subprocess.Popen([sys.executable, "-m", "realkniga", "make", *self.args],
+        env = dict(os.environ, DAREALKNIGA_PROGRESS="1", PYTHONUNBUFFERED="1")
+        self.proc = subprocess.Popen([sys.executable, "-m", "darealkniga", "make", *self.args],
                                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
                                      env=env, start_new_session=True, bufsize=1, errors="replace")
         for raw in self.proc.stdout:
@@ -109,8 +109,8 @@ class Runner(QThread):
                 _, label, done, total = s.split("\t")
                 self.progress.emit(label, int(done), int(total))
                 continue
-            if s.startswith("[realkniga] wrote "):
-                self.outputs.append(s[len("[realkniga] wrote "):].rsplit(" (", 1)[0])
+            if s.startswith("[darealkniga] wrote "):
+                self.outputs.append(s[len("[darealkniga] wrote "):].rsplit(" (", 1)[0])
             self.line.emit(s)
         self.done.emit(self.proc.wait(), self.outputs)
 
@@ -167,10 +167,10 @@ def card():
 class Window(QMainWindow):
     def __init__(self, initial=None):
         super().__init__()
-        self.settings = QSettings("realkniga", "realkniga")
+        self.settings = QSettings("darealkniga", "darealkniga")
         self.input, self.kind, self.runner, self.outputs = None, None, None, []
         self.t0 = 0
-        self.setWindowTitle("realKniga")
+        self.setWindowTitle("daRealKniga")
         self.setWindowIcon(QIcon(data_path("icon.png")))
         self.setAcceptDrops(True)
         self.resize(760, 720)
@@ -187,7 +187,7 @@ class Window(QMainWindow):
         logo.setPixmap(QPixmap(data_path("icon.png")).scaled(52, 52, Qt.KeepAspectRatio, Qt.SmoothTransformation))
         head.addWidget(logo)
         tl = QVBoxLayout()
-        t = QLabel("realKniga")
+        t = QLabel("daRealKniga")
         t.setObjectName("title")
         sub = QLabel("Make books, documents, receipts and notes searchable. Cyrillic, Latin, or both.")
         sub.setObjectName("muted")
@@ -367,7 +367,7 @@ class Window(QMainWindow):
         self.spacer = QWidget()
         self.spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         lay.addWidget(self.spacer, 1)
-        foot = QLabel(f"realKniga {__version__} · книга = book · Tesseract, PaddleOCR, UVDoc, DjVuLibre")
+        foot = QLabel(f"daRealKniga {__version__} · да = yes, книга = book · Tesseract, PaddleOCR, UVDoc, DjVuLibre")
         foot.setObjectName("muted")
         foot.setAlignment(Qt.AlignCenter)
         lay.addWidget(foot)
@@ -424,7 +424,7 @@ class Window(QMainWindow):
         try:
             kind, desc = describe_input(path)
         except ValueError as e:
-            QMessageBox.warning(self, "realKniga", str(e))
+            QMessageBox.warning(self, "daRealKniga", str(e))
             return
         self.input, self.kind = path, kind
         self.settings.setValue("lastdir", os.path.dirname(path.rstrip("/")))
@@ -470,11 +470,11 @@ class Window(QMainWindow):
         try:
             args = self.build_args()
         except ValueError as e:
-            QMessageBox.warning(self, "realKniga", str(e))
+            QMessageBox.warning(self, "daRealKniga", str(e))
             return
         self.settings.setValue("lang", self.lang_code())
         self.log.clear()
-        self.log.appendPlainText("$ realkniga make " + " ".join(f'"{x}"' if " " in x else x for x in args))
+        self.log.appendPlainText("$ darealkniga make " + " ".join(f'"{x}"' if " " in x else x for x in args))
         self.outputs = []
         self.runner = Runner(args)
         self.runner.line.connect(self.on_line)
@@ -502,12 +502,12 @@ class Window(QMainWindow):
 
     def on_line(self, s):
         self.log.appendPlainText(s)
-        if s.startswith("[realkniga] OCR engine"):
+        if s.startswith("[darealkniga] OCR engine"):
             self.stage.setText("Recognising text…")
-        elif s.startswith("[realkniga] assembling PDF"):
+        elif s.startswith("[darealkniga] assembling PDF"):
             self.stage.setText("Saving the PDF…")
             self.bar.setRange(0, 0)
-        elif s.startswith("[realkniga] writing DjVu"):
+        elif s.startswith("[darealkniga] writing DjVu"):
             self.stage.setText("Saving the DjVu…")
             self.bar.setRange(0, 0)
 
@@ -536,7 +536,7 @@ class Window(QMainWindow):
         if code == 0:
             self.bar.setValue(1)
             words = next((l for l in reversed(self.log.toPlainText().splitlines()) if "recognised" in l), "")
-            self.stage.setText("Done. " + words.replace("[realkniga] recognised", "Recognised").strip())
+            self.stage.setText("Done. " + words.replace("[darealkniga] recognised", "Recognised").strip())
             self.open_pdf.setVisible(any(o.endswith(".pdf") for o in outputs))
             self.open_dir.setVisible(bool(outputs))
         elif code in (-signal.SIGTERM, -signal.SIGKILL):
@@ -558,7 +558,7 @@ class Window(QMainWindow):
 
     def closeEvent(self, e):
         if self.runner:
-            if QMessageBox.question(self, "realKniga", "A document is being processed. Stop it and quit?") \
+            if QMessageBox.question(self, "daRealKniga", "A document is being processed. Stop it and quit?") \
                     != QMessageBox.Yes:
                 e.ignore()
                 return
@@ -571,15 +571,15 @@ def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
     smoke = "--smoke-test" in argv
     argv = [a for a in argv if a != "--smoke-test"]
-    QApplication.setApplicationName("realkniga")
-    QApplication.setDesktopFileName("realkniga")
+    QApplication.setApplicationName("darealkniga")
+    QApplication.setDesktopFileName("darealkniga")
     app = QApplication.instance() or QApplication(sys.argv[:1])
     app.setStyleSheet(STYLE)
     w = Window(argv[0] if argv else None)
     w.show()
     if smoke:  # used by the AppImage build: create the window, render it, quit
         app.processEvents()
-        out = os.environ.get("REALKNIGA_SCREENSHOT")
+        out = os.environ.get("DAREALKNIGA_SCREENSHOT")
         if out:
             w.grab().save(out)
         print("gui ok", flush=True)

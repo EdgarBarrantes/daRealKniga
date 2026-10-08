@@ -16,12 +16,12 @@ from importlib import resources
 from .util import Progress, log, write_json, pool_map
 
 TESSDATA_URL = "https://github.com/tesseract-ocr/tessdata_best/raw/main/{}.traineddata"
-DOCKER_IMAGE = "realkniga-tesseract:1"
+DOCKER_IMAGE = "darealkniga-tesseract:1"
 
 
 def tessdata_dir(override=None):
-    d = override or os.environ.get("REALKNIGA_TESSDATA") or os.path.join(
-        os.environ.get("XDG_CACHE_HOME", os.path.expanduser("~/.cache")), "realkniga", "tessdata")
+    d = override or os.environ.get("DAREALKNIGA_TESSDATA") or os.path.join(
+        os.environ.get("XDG_CACHE_HOME", os.path.expanduser("~/.cache")), "darealkniga", "tessdata")
     os.makedirs(d, exist_ok=True)
     return os.path.abspath(d)
 
@@ -58,7 +58,7 @@ def ensure_docker_image():
     if subprocess.run(["docker", "image", "inspect", DOCKER_IMAGE], capture_output=True).returncode == 0:
         return
     log(f"building Docker image {DOCKER_IMAGE} (one-time)")
-    ctx = resources.files("realkniga") / "data"
+    ctx = resources.files("darealkniga") / "data"
     subprocess.run(["docker", "build", "-t", DOCKER_IMAGE, "-f", str(ctx / "Dockerfile.tesseract"), str(ctx)],
                    check=True)
 

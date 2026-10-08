@@ -1,8 +1,8 @@
 .venv/
 *.egg-info/
 __pycache__/
-.realkniga/
+.darealkniga/
 build/
 dist/
-realkniga/_build.py
+darealkniga/_build.py
 .pytest_cache/

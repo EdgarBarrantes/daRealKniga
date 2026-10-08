@@ -9,23 +9,23 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 
 
 def log(msg):
-    print(f"[realkniga] {msg}", flush=True)
+    print(f"[darealkniga] {msg}", flush=True)
 
 
 def warn(msg):
-    print(f"[realkniga] warning: {msg}", file=sys.stderr, flush=True)
+    print(f"[darealkniga] warning: {msg}", file=sys.stderr, flush=True)
 
 
 class Progress:
     """One-line progress counter (redraws in a terminal, prints every ~10% otherwise).
-    With REALKNIGA_PROGRESS=1 every update is printed as a tab-separated line for the GUI:
+    With DAREALKNIGA_PROGRESS=1 every update is printed as a tab-separated line for the GUI:
     @@progress<TAB>label<TAB>done<TAB>total"""
 
     def __init__(self, label, total):
         self.label, self.total, self.done = label, total, 0
         self.t0 = time.time()
         self.tty = sys.stdout.isatty()
-        self.machine = os.environ.get("REALKNIGA_PROGRESS") == "1"
+        self.machine = os.environ.get("DAREALKNIGA_PROGRESS") == "1"
         self._last = -1
         self._draw()
 

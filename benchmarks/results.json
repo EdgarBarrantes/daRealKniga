@@ -1,0 +1,571 @@
+{
+ "date": "2026-10-08",
+ "commit": "85bfabc+changes",
+ "environment": {
+  "darealkniga": "0.1.0",
+  "paddleocr": "3.7.0",
+  "paddlepaddle": "3.2.2",
+  "tesseract": "5.3.4"
+ },
+ "samples": {
+  "mixed-bg": {
+   "title": "Bulgarian + English textbook page",
+   "description": "synthetic scan of a language-textbook page: Bulgarian with English words and sentences",
+   "lang": "bul+eng",
+   "pages": 1,
+   "synthetic": true,
+   "systems": {
+    "darealkniga": {
+     "words": 239,
+     "word_recall": 0.99581589958159,
+     "word_precision": 1.0,
+     "word_f1": 0.9979035639412999,
+     "char_acc": 0.9984555984555985
+    },
+    "tesseract": {
+     "words": 239,
+     "word_recall": 0.9790794979079498,
+     "word_precision": 0.9790794979079498,
+     "word_f1": 0.9790794979079498,
+     "char_acc": 0.9915057915057915
+    },
+    "paddleocr": {
+     "words": 239,
+     "word_recall": 0.8619246861924686,
+     "word_precision": 0.8619246861924686,
+     "word_f1": 0.8619246861924686,
+     "char_acc": 0.9513513513513514
+    }
+   },
+   "outputs": {
+    "pdf": {
+     "words": 239,
+     "word_recall": 0.99581589958159,
+     "word_precision": 1.0,
+     "word_f1": 0.9979035639412999,
+     "char_acc": 0.9984555984555985
+    },
+    "txt": {
+     "words": 239,
+     "word_recall": 0.99581589958159,
+     "word_precision": 1.0,
+     "word_f1": 0.9979035639412999,
+     "char_acc": 0.9984555984555985
+    }
+   },
+   "fixes": [
+    {
+     "ref": "на",
+     "tesseract": "Ha",
+     "paddleocr": "на",
+     "darealkniga": "на"
+    },
+    {
+     "ref": "са",
+     "tesseract": "ca",
+     "paddleocr": "са",
+     "darealkniga": "са"
+    },
+    {
+     "ref": "нов",
+     "tesseract": "HOB",
+     "paddleocr": "нов",
+     "darealkniga": "нов"
+    },
+    {
+     "ref": "от",
+     "tesseract": "OT",
+     "paddleocr": "от",
+     "darealkniga": "от"
+    }
+   ]
+  },
+  "mixed-ru": {
+   "title": "Russian + English technical page",
+   "description": "synthetic scan of a manual page: Russian with English terms, commands and names",
+   "lang": "rus+eng",
+   "pages": 1,
+   "synthetic": true,
+   "systems": {
+    "darealkniga": {
+     "words": 174,
+     "word_recall": 0.9942528735632183,
+     "word_precision": 0.9942528735632183,
+     "word_f1": 0.9942528735632183,
+     "char_acc": 0.9991379310344828
+    },
+    "tesseract": {
+     "words": 174,
+     "word_recall": 0.9827586206896551,
+     "word_precision": 0.9827586206896551,
+     "word_f1": 0.9827586206896551,
+     "char_acc": 0.996551724137931
+    },
+    "paddleocr": {
+     "words": 174,
+     "word_recall": 0.8448275862068966,
+     "word_precision": 0.8497109826589595,
+     "word_f1": 0.8472622478386167,
+     "char_acc": 0.9284482758620689
+    }
+   },
+   "outputs": {
+    "pdf": {
+     "words": 174,
+     "word_recall": 0.9942528735632183,
+     "word_precision": 0.9942528735632183,
+     "word_f1": 0.9942528735632183,
+     "char_acc": 0.9991379310344828
+    },
+    "txt": {
+     "words": 174,
+     "word_recall": 0.9942528735632183,
+     "word_precision": 0.9942528735632183,
+     "word_f1": 0.9942528735632183,
+     "char_acc": 0.9991379310344828
+    }
+   },
+   "fixes": [
+    {
+     "ref": "а",
+     "tesseract": "a",
+     "paddleocr": null,
+     "darealkniga": "а"
+    },
+    {
+     "ref": "or",
+     "tesseract": "ог",
+     "paddleocr": "or",
+     "darealkniga": "or"
+    }
+   ]
+  },
+  "photo-bg": {
+   "title": "Phone photo, Bulgarian + English",
+   "description": "synthetic phone photo of a travel-guide page (curled, in perspective, uneven light): Bulgarian with English names and phrases",
+   "lang": "bul+eng",
+   "pages": 1,
+   "synthetic": true,
+   "systems": {
+    "darealkniga": {
+     "words": 162,
+     "word_recall": 0.9814814814814815,
+     "word_precision": 0.9814814814814815,
+     "word_f1": 0.9814814814814815,
+     "char_acc": 0.9846153846153847
+    },
+    "tesseract": {
+     "words": 162,
+     "word_recall": 0.9135802469135802,
+     "word_precision": 0.8757396449704142,
+     "word_f1": 0.8942598187311177,
+     "char_acc": 0.7682051282051282
+    },
+    "paddleocr": {
+     "words": 162,
+     "word_recall": 0.7777777777777778,
+     "word_precision": 0.8811188811188811,
+     "word_f1": 0.8262295081967213,
+     "char_acc": 0.8174358974358974
+    }
+   },
+   "outputs": {
+    "pdf": {
+     "words": 162,
+     "word_recall": 0.9814814814814815,
+     "word_precision": 0.9814814814814815,
+     "word_f1": 0.9814814814814815,
+     "char_acc": 0.9846153846153847
+    },
+    "txt": {
+     "words": 162,
+     "word_recall": 0.9814814814814815,
+     "word_precision": 0.9814814814814815,
+     "word_f1": 0.9814814814814815,
+     "char_acc": 0.9846153846153847
+    }
+   },
+   "fixes": [
+    {
+     "ref": "да",
+     "tesseract": "na",
+     "paddleocr": "да",
+     "darealkniga": "да"
+    },
+    {
+     "ref": "open",
+     "tesseract": "ореп",
+     "paddleocr": "ореn",
+     "darealkniga": "open"
+    }
+   ]
+  },
+  "djvu-ru": {
+   "title": "Russian novel, DjVu scan",
+   "description": "DjVu scan mode, Russian prose (Вазов, Под игом, 1970)",
+   "lang": "rus",
+   "pages": 4,
+   "synthetic": false,
+   "systems": {
+    "darealkniga": {
+     "words": 1339,
+     "word_recall": 0.9559372666168783,
+     "word_precision": 0.9559372666168783,
+     "word_f1": 0.9559372666168783,
+     "char_acc": 0.9907677356656949
+    },
+    "tesseract": {
+     "words": 1339,
+     "word_recall": 0.8797610156833457,
+     "word_precision": 0.8797610156833457,
+     "word_f1": 0.8797610156833459,
+     "char_acc": 0.9774052478134111
+    },
+    "paddleocr": {
+     "words": 1339,
+     "word_recall": 0.9103808812546677,
+     "word_precision": 0.9069940476190477,
+     "word_f1": 0.9086843086097652,
+     "char_acc": 0.9797133138969873
+    }
+   },
+   "outputs": {
+    "pdf": {
+     "words": 1339,
+     "word_recall": 0.9559372666168783,
+     "word_precision": 0.9559372666168783,
+     "word_f1": 0.9559372666168783,
+     "char_acc": 0.9907677356656949
+    },
+    "djvu": {
+     "words": 1339,
+     "word_recall": 0.9559372666168783,
+     "word_precision": 0.9559372666168783,
+     "word_f1": 0.9559372666168783,
+     "char_acc": 0.9907677356656949
+    },
+    "txt": {
+     "words": 1339,
+     "word_recall": 0.9559372666168783,
+     "word_precision": 0.9559372666168783,
+     "word_f1": 0.9559372666168783,
+     "char_acc": 0.9907677356656949
+    }
+   },
+   "fixes": [
+    {
+     "ref": "Викентия",
+     "tesseract": "Викептия",
+     "paddleocr": "Викентия",
+     "darealkniga": "Викентия"
+    },
+    {
+     "ref": "не",
+     "tesseract": "пе",
+     "paddleocr": "не",
+     "darealkniga": "не"
+    },
+    {
+     "ref": "монастырских",
+     "tesseract": "мопастырских",
+     "paddleocr": "мопастырскнх",
+     "darealkniga": "монастырских"
+    },
+    {
+     "ref": "или",
+     "tesseract": "илп",
+     "paddleocr": "или",
+     "darealkniga": "или"
+    },
+    {
+     "ref": "внимание",
+     "tesseract": "впимание",
+     "paddleocr": "вшнмание",
+     "darealkniga": "внимание"
+    },
+    {
+     "ref": "горные",
+     "tesseract": "горпые",
+     "paddleocr": "горные",
+     "darealkniga": "горные"
+    },
+    {
+     "ref": "наполняя",
+     "tesseract": "паполпяя",
+     "paddleocr": "паполняя",
+     "darealkniga": "наполняя"
+    },
+    {
+     "ref": "стену",
+     "tesseract": "степу",
+     "paddleocr": null,
+     "darealkniga": "стену"
+    },
+    {
+     "ref": "них",
+     "tesseract": "пих",
+     "paddleocr": "пих",
+     "darealkniga": "них"
+    },
+    {
+     "ref": "выглянул",
+     "tesseract": "выгляпул",
+     "paddleocr": "выгляшул",
+     "darealkniga": "выглянул"
+    },
+    {
+     "ref": "заднем",
+     "tesseract": "задпем",
+     "paddleocr": "задпем",
+     "darealkniga": "заднем"
+    },
+    {
+     "ref": "на",
+     "tesseract": "па",
+     "paddleocr": "на",
+     "darealkniga": "на"
+    }
+   ]
+  },
+  "pdf-ru": {
+   "title": "Russian novel, PDF scan",
+   "description": "PDF of the same edition (cropped flat scans); reference = the DjVu text layer",
+   "lang": "rus",
+   "pages": 4,
+   "synthetic": false,
+   "systems": {
+    "darealkniga": {
+     "words": 1339,
+     "word_recall": 0.9544436146377894,
+     "word_precision": 0.9544436146377894,
+     "word_f1": 0.9544436146377894,
+     "char_acc": 0.9910106899902819
+    },
+    "tesseract": {
+     "words": 1339,
+     "word_recall": 0.8805078416728902,
+     "word_precision": 0.8805078416728902,
+     "word_f1": 0.8805078416728901,
+     "char_acc": 0.9776482021379981
+    },
+    "paddleocr": {
+     "words": 1339,
+     "word_recall": 0.8730395817774459,
+     "word_precision": 0.8957854406130268,
+     "word_f1": 0.8842662632375189,
+     "char_acc": 0.9268707482993197
+    }
+   },
+   "outputs": {
+    "pdf": {
+     "words": 1339,
+     "word_recall": 0.9544436146377894,
+     "word_precision": 0.9544436146377894,
+     "word_f1": 0.9544436146377894,
+     "char_acc": 0.9910106899902819
+    },
+    "txt": {
+     "words": 1339,
+     "word_recall": 0.9544436146377894,
+     "word_precision": 0.9544436146377894,
+     "word_f1": 0.9544436146377894,
+     "char_acc": 0.9910106899902819
+    }
+   },
+   "fixes": [
+    {
+     "ref": "и",
+     "tesseract": "ин",
+     "paddleocr": "и",
+     "darealkniga": "и"
+    },
+    {
+     "ref": "дьякона",
+     "tesseract": "дъякона",
+     "paddleocr": "дьякона",
+     "darealkniga": "дьякона"
+    },
+    {
+     "ref": "можно",
+     "tesseract": "можио",
+     "paddleocr": "мюжно",
+     "darealkniga": "можно"
+    },
+    {
+     "ref": "не",
+     "tesseract": "пе",
+     "paddleocr": "не",
+     "darealkniga": "не"
+    },
+    {
+     "ref": "бояться",
+     "tesseract": "беяться",
+     "paddleocr": "бояться",
+     "darealkniga": "бояться"
+    },
+    {
+     "ref": "монастырских",
+     "tesseract": "мопастырских",
+     "paddleocr": "мопастырских",
+     "darealkniga": "монастырских"
+    },
+    {
+     "ref": "внимание",
+     "tesseract": "впиманние",
+     "paddleocr": "винманис",
+     "darealkniga": "внимание"
+    },
+    {
+     "ref": "горные",
+     "tesseract": "горпые",
+     "paddleocr": "гориые",
+     "darealkniga": "горные"
+    },
+    {
+     "ref": "наполняя",
+     "tesseract": "паполпяя",
+     "paddleocr": "паполняя",
+     "darealkniga": "наполняя"
+    },
+    {
+     "ref": "стену",
+     "tesseract": "степу",
+     "paddleocr": "стсну",
+     "darealkniga": "стену"
+    },
+    {
+     "ref": "них",
+     "tesseract": "пих",
+     "paddleocr": "пих",
+     "darealkniga": "них"
+    },
+    {
+     "ref": "выглянул",
+     "tesseract": "выгляпул",
+     "paddleocr": "выгляшул",
+     "darealkniga": "выглянул"
+    }
+   ]
+  },
+  "pdf-bg": {
+   "title": "Bulgarian poems, low-res PDF",
+   "description": "Bulgarian poetry and prose, 133 dpi two-page spreads (Вазов, Събрани съчинения т. 4, 1974); the reference has many OCR errors of its own",
+   "lang": "bul",
+   "pages": 3,
+   "synthetic": false,
+   "systems": {
+    "darealkniga": {
+     "words": 603,
+     "word_recall": 0.8839137645107794,
+     "word_precision": 0.8839137645107794,
+     "word_f1": 0.8839137645107795,
+     "char_acc": 0.8206505520740077
+    },
+    "tesseract": {
+     "words": 603,
+     "word_recall": 0.8756218905472637,
+     "word_precision": 0.8712871287128713,
+     "word_f1": 0.8734491315136477,
+     "char_acc": 0.5899731423455685
+    },
+    "paddleocr": {
+     "words": 603,
+     "word_recall": 0.8756218905472637,
+     "word_precision": 0.868421052631579,
+     "word_f1": 0.8720066061106524,
+     "char_acc": 0.39271859146523425
+    }
+   },
+   "outputs": {
+    "pdf": {
+     "words": 603,
+     "word_recall": 0.8839137645107794,
+     "word_precision": 0.8839137645107794,
+     "word_f1": 0.8839137645107795,
+     "char_acc": 0.8206505520740077
+    },
+    "txt": {
+     "words": 603,
+     "word_recall": 0.8839137645107794,
+     "word_precision": 0.8839137645107794,
+     "word_f1": 0.8839137645107795,
+     "char_acc": 0.8206505520740077
+    }
+   },
+   "fixes": [
+    {
+     "ref": "юнаци",
+     "tesseract": "юпади",
+     "paddleocr": "юнаци",
+     "darealkniga": "юнаци"
+    },
+    {
+     "ref": "Вазову",
+     "tesseract": "Вазовт",
+     "paddleocr": "Вазову",
+     "darealkniga": "Вазову"
+    },
+    {
+     "ref": "На",
+     "tesseract": "Но",
+     "paddleocr": null,
+     "darealkniga": "На"
+    },
+    {
+     "ref": "всичко",
+     "tesseract": "зсичко",
+     "paddleocr": "всичко",
+     "darealkniga": "всичко"
+    },
+    {
+     "ref": "Генерал",
+     "tesseract": "Генерала",
+     "paddleocr": null,
+     "darealkniga": "Генерал"
+    },
+    {
+     "ref": "нашта",
+     "tesseract": "нвашта",
+     "paddleocr": "нашта",
+     "darealkniga": "нашта"
+    },
+    {
+     "ref": "славен",
+     "tesseract": "славея",
+     "paddleocr": "славен",
+     "darealkniga": "славен"
+    },
+    {
+     "ref": "Падна",
+     "tesseract": "Надна",
+     "paddleocr": "Падна",
+     "darealkniga": "Падна"
+    },
+    {
+     "ref": "скрити",
+     "tesseract": "скрятя",
+     "paddleocr": "скрити",
+     "darealkniga": "скрити"
+    },
+    {
+     "ref": "удар",
+     "tesseract": "улар",
+     "paddleocr": "удар",
+     "darealkniga": "удар"
+    },
+    {
+     "ref": "дивил",
+     "tesseract": "давил",
+     "paddleocr": "дивил",
+     "darealkniga": "дивил"
+    },
+    {
+     "ref": "злото",
+     "tesseract": "злато",
+     "paddleocr": null,
+     "darealkniga": "злото"
+    }
+   ]
+  }
+ }
+}

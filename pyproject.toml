@@ -3,7 +3,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "realkniga"
+name = "darealkniga"
 version = "0.1.0"
 description = "OCR for Slavic and English documents (books, scans, photos, receipts) in Cyrillic, Latin or both mixed: clean, searchable PDF/DjVu"
 readme = "README.md"
@@ -21,24 +21,25 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/EdgarBarrantes/realkniga"
-Issues = "https://github.com/EdgarBarrantes/realkniga/issues"
+Homepage = "https://github.com/EdgarBarrantes/daRealKniga"
+Issues = "https://github.com/EdgarBarrantes/daRealKniga/issues"
 
 [project.optional-dependencies]
 gui = ["PySide6-Essentials>=6.6"]
 test = ["pytest>=8", "rapidfuzz>=3"]
 
 [project.scripts]
-realkniga = "realkniga.cli:main"
+darealkniga = "darealkniga.cli:main"
+drk = "darealkniga.cli:main"
 
 [project.gui-scripts]
-realkniga-gui = "realkniga.gui:main"
+darealkniga-gui = "darealkniga.gui:main"
 
 [tool.setuptools]
-packages = ["realkniga"]
+packages = ["darealkniga"]
 
 [tool.setuptools.package-data]
-realkniga = ["data/*"]
+darealkniga = ["data/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

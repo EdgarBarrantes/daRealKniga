@@ -117,7 +117,7 @@ def run_djvu(cfg):
     book = os.path.abspath(cfg.input)
     stem = os.path.splitext(os.path.basename(book))[0]
     out_dir, name = _outputs(cfg, stem)
-    ws = Workspace(cfg.work or os.path.join(out_dir, ".realkniga", stem), book)
+    ws = Workspace(cfg.work or os.path.join(out_dir, ".darealkniga", stem), book)
     lg = langs_mod.parse(cfg.lang)
     info = djvu.page_info(book)
     sel = parse_pages(cfg.pages, len(info))
@@ -225,7 +225,7 @@ def run_photos(cfg):
     src = os.path.abspath(cfg.input)
     stem = os.path.basename(src.rstrip("/")) if os.path.isdir(src) else os.path.splitext(os.path.basename(src))[0]
     out_dir, name = _outputs(cfg, cfg.title or stem)
-    ws = Workspace(cfg.work or os.path.join(out_dir, ".realkniga", stem), src)
+    ws = Workspace(cfg.work or os.path.join(out_dir, ".darealkniga", stem), src)
     lg = langs_mod.parse(cfg.lang)
     total = sources.count(src)
     if not total:
@@ -311,4 +311,4 @@ def run_photos(cfg):
 
 
 def _producer(cfg, lg):
-    return f"realKniga; OCR: {_engine(cfg, lg)} ({lg.tess})"
+    return f"daRealKniga; OCR: {_engine(cfg, lg)} ({lg.tess})"

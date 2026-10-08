@@ -1,8 +1,8 @@
 #!/bin/sh
 # AppImage entry point.
-#   realkniga.AppImage                 -> opens the window
-#   realkniga.AppImage book.djvu       -> opens the window with that book
-#   realkniga.AppImage make|doctor ... -> command line (see --help)
+#   darealkniga.AppImage                 -> opens the window
+#   darealkniga.AppImage book.djvu       -> opens the window with that book
+#   darealkniga.AppImage make|doctor ... -> command line (see --help)
 HERE="$(dirname "$(readlink -f "$0")")"
 export PATH="$HERE/usr/bin:$PATH"
 unset PYTHONHOME PYTHONPATH
@@ -22,6 +22,6 @@ fi
 
 PY="$HERE/usr/python/bin/python3"
 case "${1:-}" in
-  make|doctor|gui|-h|--help|--version) exec "$PY" -m realkniga "$@" ;;
-  *) exec "$PY" -m realkniga gui ${1:+"$1"} ;;
+  make|doctor|gui|-h|--help|--version) exec "$PY" -m darealkniga "$@" ;;
+  *) exec "$PY" -m darealkniga gui ${1:+"$1"} ;;
 esac

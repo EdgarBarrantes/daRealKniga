@@ -1,4 +1,4 @@
-# Minimal Tesseract 5 image. Language models are not baked in: realkniga downloads
+# Minimal Tesseract 5 image. Language models are not baked in: darealkniga downloads
 # tessdata_best models to its cache and mounts them at /tessdata.
 FROM ubuntu:24.04
 RUN apt-get update \

@@ -1,4 +1,4 @@
-"""Draws the realkniga icon (open book with text lines and a magnifier) -> realkniga/data/icon.png"""
+"""Draws the darealkniga icon (open book with text lines and a magnifier) -> darealkniga/data/icon.png"""
 import os
 from PIL import Image, ImageDraw, ImageFilter
 
@@ -57,4 +57,4 @@ def main(out):
 
 
 if __name__ == "__main__":
-    main(os.path.join(os.path.dirname(__file__), "..", "realkniga", "data", "icon.png"))
+    main(os.path.join(os.path.dirname(__file__), "..", "darealkniga", "data", "icon.png"))

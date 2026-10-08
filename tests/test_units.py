@@ -4,8 +4,8 @@ import pikepdf
 import pytest
 from PIL import Image
 
-from realkniga import enhance, fuse, langs, pdf, textlayer
-from realkniga.util import natural_key, parse_pages
+from darealkniga import enhance, fuse, langs, pdf, textlayer
+from darealkniga.util import natural_key, parse_pages
 
 import accuracy
 

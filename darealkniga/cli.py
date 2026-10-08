@@ -7,24 +7,27 @@ import sys
 
 from . import __version__
 
-EPILOG = """examples:
-  realkniga make "Bulgarian for Beginners - Part 1.djvu" --lang bul+eng
-  realkniga make book.pdf --lang bul --title "Под игото" --author "Иван Вазов"
-  realkniga make phone-photos/ --lang rus --page-size 6x9
-  realkniga make receipt.jpg --lang ukr+eng         # a single photo: receipt, letter, note
-  realkniga make scans.pdf --unwarp never         # force: never flatten (default: detect per page)
-  realkniga make book.djvu --pages 1-20           # quick trial on a few pages
-  realkniga doctor                                # check that everything is installed
-  realkniga gui                                   # open the graphical interface
+EPILOG = """`drk` is a short form of `darealkniga`: both commands are the same.
+
+examples:
+  darealkniga make "Bulgarian for Beginners - Part 1.djvu" --lang bul+eng
+  darealkniga make book.pdf --lang bul --title "Под игото" --author "Иван Вазов"
+  darealkniga make phone-photos/ --lang rus --page-size 6x9
+  darealkniga make receipt.jpg --lang ukr+eng         # a single photo: receipt, letter, note
+  darealkniga make scans.pdf --unwarp never         # force: never flatten (default: detect per page)
+  darealkniga make book.djvu --pages 1-20           # quick trial on a few pages
+  darealkniga doctor                                # check that everything is installed
+  darealkniga gui                                   # open the graphical interface
 """
 
 
 def build_parser():
-    ap = argparse.ArgumentParser(prog="realkniga", description="realKniga: make scanned or photographed books, "
+    called = os.path.basename(sys.argv[0])
+    ap = argparse.ArgumentParser(prog=called if called in ("darealkniga", "drk") else "darealkniga", description="daRealKniga: make scanned or photographed books, "
                                  "documents, receipts and notes searchable. Built for Slavic languages and English, "
                                  "including text that mixes Cyrillic and Latin script.",
                                  formatter_class=argparse.RawDescriptionHelpFormatter, epilog=EPILOG)
-    ap.add_argument("--version", action="version", version=f"realKniga {__version__}")
+    ap.add_argument("--version", action="version", version=f"daRealKniga {__version__}")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     m = sub.add_parser("make", help="process a book or document", formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -66,9 +69,9 @@ def build_parser():
     m.add_argument("--unwarp-workers", type=int, help="UVDoc processes (default: jobs/6)")
     m.add_argument("--tesseract", choices=["auto", "local", "docker"], default="auto",
                    help="where to run Tesseract (default: local binary if present, else Docker)")
-    m.add_argument("--tessdata", help="folder with .traineddata files (default: ~/.cache/realkniga/tessdata, "
+    m.add_argument("--tessdata", help="folder with .traineddata files (default: ~/.cache/darealkniga/tessdata, "
                                       "tessdata_best models are downloaded on demand)")
-    m.add_argument("--work", help="work folder for intermediate files (default: <output>/.realkniga/<name>)")
+    m.add_argument("--work", help="work folder for intermediate files (default: <output>/.darealkniga/<name>)")
     m.add_argument("--cleanup", action="store_true", help="delete the work folder after success")
 
     sub.add_parser("doctor", help="check dependencies")
@@ -86,7 +89,7 @@ def doctor():
         ok &= bool(good) or name.startswith("(optional)")
         print(f"  [{'ok' if good else '--'}] {name}{': ' + detail if detail else ''}")
 
-    print("realKniga", __version__, "| python", sys.version.split()[0])
+    print("daRealKniga", __version__, "| python", sys.version.split()[0])
     for mod in ("numpy", "cv2", "PIL", "pikepdf", "pymupdf", "wordfreq", "paddleocr", "paddle", "PySide6"):
         name = f"(optional) python module {mod} (interface)" if mod == "PySide6" else f"python module {mod}"
         try:
@@ -122,7 +125,7 @@ def main(argv=None):
         try:
             from .gui import main as gui_main
         except ImportError as e:
-            sys.exit(f"the interface needs PySide6: pip install 'realkniga[gui]' ({e})")
+            sys.exit(f"the interface needs PySide6: pip install 'darealkniga[gui]' ({e})")
         sys.exit(gui_main(([args.input] if args.input else []) + (["--smoke-test"] if args.smoke_test else [])))
     is_djvu = args.input.lower().endswith((".djvu", ".djv"))
     args.formats = {f.strip() for f in (args.formats or ("pdf,djvu,txt" if is_djvu else "pdf,txt")).split(",")

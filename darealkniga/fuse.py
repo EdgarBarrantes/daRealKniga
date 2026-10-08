@@ -6,6 +6,7 @@ using lexicon look-ups (wordfreq) and Cyrillic/Latin look-alike rules. All coord
 page pixels with a top-left origin.
 """
 import csv
+import difflib
 import re
 import unicodedata
 from wordfreq import zipf_frequency
@@ -22,7 +23,8 @@ CYR = re.compile(r"[Ѐ-ӿ]")
 LAT = re.compile(r"[A-Za-z]")
 # Latin look-alikes -> Cyrillic and back
 L2C = dict(zip("aeopcxykAEOPCXYKBHMTrun", "аеорсхукАЕОРСХУКВНМТгип"))
-C2L = dict(zip("аеорсхукАЕОРСХУКВНМТ", "aeopcxykAEOPCXYKBHMT"))
+C2L = dict(zip("аеорсхукіјѕАЕОРСХУКВНМТІЈЅ", "aeopcxykijsAEOPCXYKBHMTIJS"))
+DIGIT_LOOKALIKE = {"1": "il", "0": "o"}
 
 
 def strip_acute(w):
@@ -39,6 +41,7 @@ def script(w):
 
 def clean(w, prefer=None):
     w = strip_acute(w)
+    w = re.sub(r"(?<=\w)[’‘ʼ](?=\w)", "'", w)  # don’t -> don't: the apostrophe people type when searching
     s = script(w)
     if prefer is None and s == "lat" and all(ch in L2C or not LAT.match(ch) for ch in w):
         # made only of letters that also exist in Cyrillic (xaoc, Mama): pick the known reading
@@ -58,8 +61,8 @@ def known(w):
     core = w.strip(".,;:!?\"'“”„«»()[]{}…–—-/*").lower().replace("’", "'")
     if not core:
         return False
-    if core.isdigit():
-        return True
+    if core.isdigit() or re.fullmatch(r"[ivxlc]+", core) and re.fullmatch(r"(x{0,3}|xl|l?x{0,3}|xc)(i{0,3}|iv|v?i{0,3}|ix)", core):
+        return True   # numbers and Roman numerals (IV, XII)
     if re.search(r"\d", core) and has_letters(core) and not re.fullmatch(r"\d+(st|nd|rd|th)", core):
         return False
     parts = [p for p in core.split("-") if p]
@@ -117,7 +120,26 @@ def recover_cyr(w):
 
 def choose(t, p, line_script):
     r = _choose(t, p, line_script)
-    return recover_cyr(r) or r
+    return recover_cyr(r) or recover_lat(r) or r
+
+
+def recover_lat(w):
+    """Cyrillic look-alike misread of an English word ('р1р' -> 'pip', 'рrint' -> 'print'),
+    used only when the Latin reading is a common English word and the Cyrillic one is no word."""
+    m = re.match(r"^(\W*)(.*?)(\W*)$", w)
+    pre, core, post = m.groups()
+    if len(core) < 2 or not CYR.search(core) or known(core):
+        return None
+    if any(not (ch in C2L or ch in DIGIT_LOOKALIKE or LAT.match(ch)) for ch in core):
+        return None
+    if not any(ch in C2L or LAT.match(ch) for ch in core):
+        return None
+    opts = [""]
+    for ch in core:
+        alts = DIGIT_LOOKALIKE.get(ch) or C2L.get(ch, ch)
+        opts = [o + a for o in opts for a in alts][:32]
+    f, best = max((zipf_frequency(o.lower(), LEX["lat"]), o) for o in opts)
+    return pre + best + post if f >= 3.0 else None
 
 
 # Cyrillic letters that some typefaces make Tesseract confuse systematically (н/п/и, ш/щ, ь/ъ)
@@ -233,10 +255,10 @@ def repair_page(lines, min_share=0.02, min_count=3):
 def _choose(t, p, line_script):
     """t: tesseract word, p: paddle word or None."""
     single = len(re.sub(r"\W", "", t)) == 1 and has_letters(t)
-    if single and line_script in ("cyr", "lat"):
-        # single ambiguous letters (а/a, е/e, о/o, с/c ...) follow the line's script
+    if single:
+        # single look-alike letters (а/a, о/o, с/c ...) are settled by single_letters() from the neighbours
         base = p if (p and len(re.sub(r"\W", "", strip_acute(p))) == 1) else t
-        return clean(base, line_script) if script(strip_acute(base)) in ("cyr", "lat", "mix") else base
+        return strip_acute(base)
     tc = clean(t)
     if p is None:
         return tc
@@ -262,7 +284,23 @@ def _choose(t, p, line_script):
     if sp == "cyr" and st == "lat":
         return pc
     if st == "lat" and sp == "lat":
-        return pc
+        # PaddleOCR's word positions are estimated, so its reading may belong to a neighbouring
+        # word: take it only when it is clearly the same word
+        if len(pc) < 0.8 * len(tc):
+            return tc       # a fragment of the word ('g.yaml' for 'config.yaml')
+        if difflib.SequenceMatcher(None, tc, pc).ratio() >= 0.6:
+            # the same word read two ways ('turn'/'tum'): the more common reading
+            if re.sub(r"\W", "", tc) == re.sub(r"\W", "", pc):
+                # same letters, different punctuation ('A.D.'/'AD.', '(adj)'/'(adj.)'): engines
+                # drop marks more often than they invent them
+                return tc if len(re.sub(r"\w", "", tc)) > len(re.sub(r"\w", "", pc)) else pc
+            if re.sub(r"\w", "", tc) != re.sub(r"\w", "", pc):
+                return tc   # letters and punctuation both differ ('(adj.)'/'(ad).)'): keep Tesseract's
+            ft, fp = (zipf_frequency(re.sub(r"\W", "", x).lower(), LEX["lat"]) for x in (tc, pc))
+            return tc if ft > fp + 0.5 else pc
+        if len(tc) == len(pc) and sum(x != y for x, y in zip(tc, pc)) == 1 and \
+                zipf_frequency(pc.lower(), LEX["lat"]) > zipf_frequency(tc.lower(), LEX["lat"]) + 1:
+            return pc
     return tc
 
 
@@ -320,6 +358,73 @@ def match(tw, pws):
     return best if bestv >= 0.4 else None
 
 
+def page_script(tlines):
+    """Main alphabet of a page, by word count."""
+    sc = [script(strip_acute(w["t"])) for l in tlines for w in l if len(re.sub(r"[\W\d_]", "", w["t"])) > 1]
+    return "cyr" if sc.count("cyr") >= sc.count("lat") else "lat"
+
+
+def single_letters(words, main=None):
+    """Single letters that exist in both alphabets, decided from the words around them.
+    - Grammar fragments ('-а', '-е-') are endings of the Slavic language: Cyrillic.
+    - о, с, у, е, к, в, х are words only in the Slavic languages: Cyrillic next to any Cyrillic
+      word ('В ресторанта', 'не ни е He…'), Latin only between Latin words (labels, formulas).
+    - 'а/a' is both the Slavic conjunction and the English article, so it leans on the next
+      word ('a new', 'а куфарите'), or on the previous one when its clause ends there
+      ('…, а.' or before a quote). A comma before it on a mostly Slavic page means the
+      conjunction, even before a Latin word (', а Microsoft')."""
+    def neighbour(j, step):
+        while 0 <= j < len(words):
+            if has_letters(words[j]["t"]):
+                return script(strip_acute(words[j]["t"]))
+            j += step
+        return None
+    scripts = [script(strip_acute(w["t"])) for w in words if len(re.sub(r"[\W\d_]", "", w["t"])) > 1]
+    line = "cyr" if scripts.count("cyr") >= scripts.count("lat") else "lat"
+    for i, w in enumerate(words):
+        m = re.match(r"^(\W*)([^\W\d_])(\W*)$", w["t"])
+        if not m or not (m.group(2) in L2C or m.group(2) in C2L):
+            continue
+        pre, ch, post = m.groups()
+        if pre.endswith("(") and post.startswith(")"):
+            continue                # list labels (a)/(а): the book's convention, keep the reading
+        ps, ns = neighbour(i - 1, -1), neighbour(i + 1, 1)
+        comma = (i > 0 and words[i - 1]["t"].endswith(",")) or pre.startswith(",")
+        # a single-letter word leans on the next word (prepositions, conjunctions, the article),
+        # unless its clause ends here: punctuation after it ('Добре ми е.') or a quote or
+        # bracket opening the next word ('Петър е “Did you…') -> lean on the previous word
+        nxt = words[i + 1]["t"] if i + 1 < len(words) else ""
+        ends = re.search(r"[,.;:!?]", post) or re.match(r"[\"“„«(\[]", nxt)
+        anchor = (ps or ns) if ends else (ns or ps)
+        if "-" in pre or "-" in post:
+            target = "cyr"
+        elif ch.lower() not in "aа":
+            # о, с, у, е, к, в, х are words only in the Slavic languages
+            near = [x for x in (ps, ns) if x in ("cyr", "lat")]
+            target = "lat" if near and all(x == "lat" for x in near) else "cyr" if near else line
+        elif anchor == "lat" and comma and (main or line) == "cyr":
+            target = "cyr"          # ', а Microsoft': the conjunction before a foreign name
+        else:
+            target = anchor if anchor in ("cyr", "lat") else line
+        if target == "cyr" and ch in L2C and ch not in "run":
+            w["t"] = pre + L2C[ch] + post
+        elif target == "lat" and ch in C2L:
+            w["t"] = pre + C2L[ch] + post
+
+
+def covering(tw, pws):
+    """PaddleOCR words lying (mostly) inside one Tesseract word box, left to right."""
+    tb = tw["box"]
+    out = []
+    for pw in pws:
+        pb = pw["box"]
+        if overlap((tb[1], tb[3]), (pb[1], pb[3])) < 0.5 * min(tb[3] - tb[1], pb[3] - pb[1]):
+            continue
+        if overlap((tb[0], tb[2]), (pb[0], pb[2])) >= 0.6 * max(1, pb[2] - pb[0]):
+            out.append(pw)
+    return sorted(out, key=lambda p: p["box"][0])
+
+
 def context_pass(words):
     """Latin look-alike words (ce, Ha, e) surrounded by Cyrillic -> Cyrillic."""
     sc = [script(w["t"]) for w in words]
@@ -344,6 +449,7 @@ def context_pass(words):
 def tess_only_page(tlines, normalize):
     """No second engine: keep Tesseract words, drop symbol noise, optionally fix look-alikes."""
     lines = []
+    main = page_script(tlines)
     for tl in tlines:
         ls = script(strip_acute("".join(w["t"] for w in tl)))
         words = [{"t": choose(w["t"], None, ls) if normalize else w["t"], "box": [round(v) for v in w["box"]]}
@@ -351,17 +457,28 @@ def tess_only_page(tlines, normalize):
         if words:
             if normalize:
                 context_pass(words)
+                single_letters(words, main)
             lines.append(words)
     return repair_page(resolve_case(lines)) if normalize else lines
 
 
 def fuse_page(tlines, pws):
     lines = []
+    main = page_script(tlines)
     for tl in tlines:
         lt = "".join(w["t"] for w in tl)
         ls = script(strip_acute(lt))
         words = []
         for tw in tl:
+            parts = covering(tw, pws)
+            letters = lambda x: len(re.sub(r"[\W\d_]", "", x))
+            if len(parts) >= 2 and letters(tw["t"]) >= 4 and not known(clean(tw["t"])) and \
+                    all(letters(p["t"]) >= 2 and known(clean(p["t"])) for p in parts):
+                # Tesseract merged several words ("Арр1евыпускает"); PaddleOCR read them apart
+                for p in parts:
+                    p["used"] = True
+                    words.append({"t": clean(p["t"]), "box": [round(v) for v in p["box"]]})
+                continue
             pw = match(tw, pws)
             if pw:
                 pw["used"] = True
@@ -375,6 +492,7 @@ def fuse_page(tlines, pws):
             words.append(word)
         if words:
             context_pass(words)
+            single_letters(words, main)
             lines.append(words)
     # text paddle found but tesseract missed entirely
     tboxes = [tw["box"] for tl in tlines for tw in tl]

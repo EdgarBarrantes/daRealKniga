@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Builds a self-contained realkniga AppImage plus a portable tarball of the same files:
-#   dist/realkniga-<version>-x86_64.AppImage
-#   dist/realkniga-<version>-x86_64.tar.gz
+# Builds a self-contained darealkniga AppImage plus a portable tarball of the same files:
+#   dist/darealkniga-<version>-x86_64.AppImage
+#   dist/darealkniga-<version>-x86_64.tar.gz
 #   dist/SHA256SUMS
 #
-# Bundled: Python 3.12 (python-build-standalone), realkniga with PaddleOCR/UVDoc and the Qt
+# Bundled: Python 3.12 (python-build-standalone), darealkniga with PaddleOCR/UVDoc and the Qt
 # interface, Tesseract 5 and the DjVuLibre tools. OCR models are downloaded on first use.
 #
 # Runs on Ubuntu 22.04 as root, so the result works on any distribution with glibc 2.35 or
@@ -17,7 +17,7 @@ BUILD="${BUILD_DIR:-$ROOT/build}"
 DIST="$ROOT/dist"
 VERSION="${VERSION:-$(sed -n 's/^version = "\(.*\)"/\1/p' "$ROOT/pyproject.toml")}"
 VERSION="${VERSION#v}"
-NAME="realkniga-$VERSION-x86_64"
+NAME="darealkniga-$VERSION-x86_64"
 
 PY_URL="https://github.com/astral-sh/python-build-standalone/releases/download/20260804/cpython-3.12.13%2B20260804-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
 PY_SHA="ce2c9c5df1b99a962a86d2f457656918ee5f01b2edea080db28416232a1fcb11"
@@ -57,26 +57,26 @@ tar -C "$ROOT" --exclude=./.venv --exclude=./build --exclude=./dist --exclude=./
   --exclude='*.egg-info' --exclude=__pycache__ -cf - . | tar -C "$BUILD/src" -xf -
 SRC="$BUILD/src"
 sed -i "s/^version = \".*\"/version = \"$VERSION\"/" "$SRC/pyproject.toml"
-sed -i "s/^__version__ = \".*\"/__version__ = \"$VERSION\"/" "$SRC/realkniga/__init__.py"
+sed -i "s/^__version__ = \".*\"/__version__ = \"$VERSION\"/" "$SRC/darealkniga/__init__.py"
 if [ -n "${REPO_URL:-}" ]; then
-  printf 'REPO_URL = "%s"\n' "$REPO_URL" > "$SRC/realkniga/_build.py"
+  printf 'REPO_URL = "%s"\n' "$REPO_URL" > "$SRC/darealkniga/_build.py"
 fi
 
 APPDIR="$BUILD/AppDir"
 mkdir -p "$APPDIR/usr/bin" "$APPDIR/usr/lib/qt-extra"
 
-step "python + realkniga"
+step "python + darealkniga"
 fetch "$PY_URL" "$PY_SHA" "$BUILD/python.tar.gz"
 tar -C "$APPDIR/usr" -xzf "$BUILD/python.tar.gz"   # -> usr/python
 PY="$APPDIR/usr/python/bin/python3"
 "$PY" -m pip install -q --no-cache-dir --upgrade pip
 "$PY" -m pip install -q --no-cache-dir "$SRC[gui]"
-cat > "$APPDIR/usr/bin/realkniga" <<'EOS'
+cat > "$APPDIR/usr/bin/darealkniga" <<'EOS'
 #!/bin/sh
 HERE="$(dirname "$(readlink -f "$0")")"
-exec "$HERE/../python/bin/python3" -m realkniga "$@"
+exec "$HERE/../python/bin/python3" -m darealkniga "$@"
 EOS
-chmod +x "$APPDIR/usr/bin/realkniga"
+chmod +x "$APPDIR/usr/bin/darealkniga"
 
 step "Qt fallback libraries"
 for l in $QT_EXTRA_LIBS; do
@@ -91,12 +91,12 @@ fi
 step "Tesseract and DjVuLibre (linuxdeploy)"
 fetch "$LD_URL" "$LD_SHA" "$BUILD/linuxdeploy"
 chmod +x "$BUILD/linuxdeploy"
-cp "$ROOT/packaging/realkniga.desktop" "$BUILD/realkniga.desktop"
-cp "$SRC/realkniga/data/icon.png" "$BUILD/realkniga.png"
+cp "$ROOT/packaging/darealkniga.desktop" "$BUILD/darealkniga.desktop"
+cp "$SRC/darealkniga/data/icon.png" "$BUILD/darealkniga.png"
 args=()
 for t in $TOOLS; do args+=(--executable "$(command -v "$t")"); done
 "$BUILD/linuxdeploy" --appdir "$APPDIR" "${args[@]}" \
-  --desktop-file "$BUILD/realkniga.desktop" --icon-file "$BUILD/realkniga.png" >"$BUILD/linuxdeploy.log" 2>&1 \
+  --desktop-file "$BUILD/darealkniga.desktop" --icon-file "$BUILD/darealkniga.png" >"$BUILD/linuxdeploy.log" 2>&1 \
   || { tail -40 "$BUILD/linuxdeploy.log"; exit 1; }
 rm -f "$APPDIR/AppRun"
 cp "$ROOT/packaging/AppRun" "$APPDIR/AppRun"
@@ -117,7 +117,7 @@ rm -f "$DIST/$NAME.AppImage" "$DIST/$NAME.tar.gz"
 ARCH=x86_64 VERSION="$VERSION" "$BUILD/appimagetool" --no-appstream "$APPDIR" "$DIST/$NAME.AppImage"
 
 step "tarball"
-tar -C "$BUILD" --transform "s,^AppDir,realkniga-$VERSION," -I pigz -cf "$DIST/$NAME.tar.gz" AppDir
+tar -C "$BUILD" --transform "s,^AppDir,darealkniga-$VERSION," -I pigz -cf "$DIST/$NAME.tar.gz" AppDir
 (cd "$DIST" && sha256sum "$NAME.AppImage" "$NAME.tar.gz" > SHA256SUMS)
 
 if [ -n "${HOST_UID:-}" ]; then
