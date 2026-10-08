@@ -385,7 +385,7 @@ Selection, copy and search therefore line up with the printed words in any PDF v
 ## Tests
 
 ```bash
-.venv/bin/pip install -e ".[test]"
+.venv/bin/pip install --prefer-binary -e ".[test]"
 .venv/bin/pytest                  # everything (~1 min after the first run)
 .venv/bin/pytest -m "not accuracy" # unit tests only (no downloads, < 1 s)
 .venv/bin/python tests/accuracy.py # just the accuracy table

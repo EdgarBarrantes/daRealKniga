@@ -13,7 +13,7 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from importlib import resources
 
-from .util import Progress, log, write_json, pool_map
+from .util import Progress, imread, log, write_json, pool_map
 
 TESSDATA_URL = "https://github.com/tesseract-ocr/tessdata_best/raw/main/{}.traineddata"
 DOCKER_IMAGE = "darealkniga-tesseract:1"
@@ -83,11 +83,17 @@ def run_tesseract(jobs, langs, workdir, tessdata, threads, backend=None):
         env = dict(os.environ, OMP_THREAD_LIMIT="1")
 
         def one(j):
+            # image in through stdin and TSV out through stdout, so Tesseract never opens a file name:
+            # on Windows it can't open paths with non-ASCII characters (e.g. a Cyrillic book title)
             img, out, dpi = j
-            r = subprocess.run(["tesseract", "--tessdata-dir", tessdata, img, out + ".part", "-l", langs,
+            with open(img, "rb") as f:
+                data = f.read()
+            r = subprocess.run(["tesseract", "--tessdata-dir", tessdata, "stdin", "stdout", "-l", langs,
                                 "--psm", "3", "--dpi", str(dpi), "-c", "tessedit_create_tsv=1",
-                                "-c", "tessedit_create_txt=0"], env=env, capture_output=True)
-            if r.returncode == 0 and os.path.exists(out + ".part.tsv"):
+                                "-c", "tessedit_create_txt=0"], input=data, env=env, capture_output=True)
+            if r.returncode == 0 and r.stdout:
+                with open(out + ".part.tsv", "wb") as f:
+                    f.write(r.stdout)
                 os.replace(out + ".part.tsv", out + ".tsv")
             return j
 
@@ -139,7 +145,7 @@ def _paddle_init(rec, threads):
 
 def _paddle_one(job):
     img, out = job
-    r = _PADDLE.predict(img)[0].json["res"]
+    r = _PADDLE.predict(imread(img))[0].json["res"]   # the image, not its path (see unwarp._one)
     write_json(out, {"texts": r["rec_texts"], "scores": [float(s) for s in r["rec_scores"]],
                      "boxes": [list(map(int, b)) for b in r["rec_boxes"]]})
 

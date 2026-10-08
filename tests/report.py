@@ -101,29 +101,43 @@ def summary(run):
 
 # ------------------------------------------------------------------ chart
 
-def chart(run):
+def chart(run, lang="en"):
     """Horizontal grouped bars of misread words (lower is better), one group per sample."""
+    tx = SITE_TEXT[lang]
     samples = list(run["samples"].items())
-    W, left, right, top = 820, 250, 70, 92
+    titles = {name: sample_title(name, r, lang)[0] for name, r in samples}
+    left = max(250, int(max(len(x) for x in titles.values()) * 7.7) + 26)
+    W, right = 570 + left, 70
+    # the summary line wraps in two when it's too long; the legend moves under it when the title
+    # leaves no room beside it (rough text widths: these charts are made without a font engine)
+    sub = re.sub(r"<[^>]+>", "", lead(run, lang))
+    subs = [sub]
+    if len(sub) * 6.9 > W - 48:
+        cut = min((m.end() for m in re.finditer(r", | and | и | et ", sub)), key=lambda i: abs(i - len(sub) / 2))
+        subs = [sub[:cut].rstrip(), sub[cut:].strip()]
+    legend_x = W - right - 3 * 128 + 10
+    legend_below = 24 + len(tx["chart_title"]) * 11.6 > legend_x - 16
+    sub_y = [62 + 18 * i for i in range(len(subs))]
+    legend_y = sub_y[-1] + 22 if legend_below else 27
+    top = (legend_y + 40) if legend_below else 92 + 18 * (len(subs) - 1)
     bar, gap, group_gap = 15, 3, 26
     group_h = 3 * bar + 2 * gap
     H = top + len(samples) * (group_h + group_gap) + 52
     vmax = max(errors(s) for _, r in samples for s in r["systems"].values())
     vmax = max(0.05, (int(vmax * 100 / 5) + 1) * 5 / 100)          # round the axis up to 5 %
     scale = (W - left - right) / vmax
-    sm = summary(run)
-    sub = " and ".join(f"{v:.1f}× fewer words than {LABELS[k]}" for k, v in sm.items())
     o = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}" '
          f'font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif">',
          f'<rect width="{W}" height="{H}" rx="14" fill="#ffffff" stroke="#d0d7de"/>',
-         f'<text x="24" y="38" font-size="20" font-weight="700" fill="#1f2328">Words misread (lower is better)</text>',
-         f'<text x="24" y="62" font-size="13.5" fill="#57606a">daRealKniga misreads on average {escape(sub)}.</text>']
+         f'<text x="24" y="38" font-size="20" font-weight="700" fill="#1f2328">{escape(tx["chart_title"])}</text>']
+    for y_, line in zip(sub_y, subs):
+        o.append(f'<text x="24" y="{y_}" font-size="13.5" fill="#57606a">{escape(line)}</text>')
     # legend
-    x = W - right - 3 * 128 + 10
+    x = 24 if legend_below else legend_x
     for k in ("tesseract", "paddleocr", "darealkniga"):
-        o.append(f'<rect x="{x}" y="27" width="12" height="12" rx="2" fill="{COLORS[k]}"/>'
-                 f'<text x="{x + 17}" y="37.5" font-size="12.5" fill="#1f2328">{LABELS[k]}</text>')
-        x += 128
+        o.append(f'<rect x="{x}" y="{legend_y}" width="12" height="12" rx="2" fill="{COLORS[k]}"/>'
+                 f'<text x="{x + 17}" y="{legend_y + 10.5}" font-size="12.5" fill="#1f2328">{escape(tx[k])}</text>')
+        x += 150 if legend_below else 128
     # grid
     for t in range(0, int(round(vmax * 100)) + 1, 5):
         gx = left + t / 100 * scale
@@ -132,10 +146,10 @@ def chart(run):
     y = top
     for name, r in samples:
         o.append(f'<text x="{left - 14}" y="{y + group_h / 2 - 2:.1f}" font-size="13.5" font-weight="600" '
-                 f'fill="#1f2328" text-anchor="end">{escape(r["title"])}</text>'
+                 f'fill="#1f2328" text-anchor="end">{escape(titles[name])}</text>'
                  f'<text x="{left - 14}" y="{y + group_h / 2 + 15:.1f}" font-size="11.5" fill="#57606a" '
-                 f'text-anchor="end">{escape(name)} · {r["systems"]["darealkniga"]["words"]} words'
-                 f'{" · exact reference" if r.get("synthetic") else ""}</text>')
+                 f'text-anchor="end">{escape(name)} · {tx["words"].format(n=r["systems"]["darealkniga"]["words"])}'
+                 f'{" · " + tx["exact"] if r.get("synthetic") else ""}</text>')
         for k in ("tesseract", "paddleocr", "darealkniga"):
             s = r["systems"].get(k)
             if s:
@@ -249,54 +263,190 @@ def update_readme(run):
 
 # ------------------------------------------------------------------ project page (docs/index.html)
 
-def site_section(run):
-    """The benchmark part of the project page: summary, table and examples, as HTML."""
-    sm = summary(run)
-    o = [START]
-    if sm:
-        parts = [f"<strong>{v:.1f}&times; fewer words</strong> than {escape(LABELS[k])}" for k, v in sm.items()]
-        o.append(f'<p class="lead">daRealKniga misreads on average {" and ".join(parts)}.</p>')
-    o.append('<img class="chart" src="benchmark.svg" alt="Words misread by Tesseract alone, PaddleOCR alone '
-             'and daRealKniga, per sample (lower is better)">')
-    o.append('<div class="scroll"><table class="results"><thead><tr><th>Sample</th><th>Tesseract alone</th>'
-             '<th>PaddleOCR alone</th><th>daRealKniga</th></tr></thead><tbody>')
-    for r in run["samples"].values():
+def site_section(run, lang="en"):
+    """The benchmark part of a project page: summary, chart, table and examples, as HTML."""
+    t = SITE_TEXT[lang]
+    up = "" if lang == "en" else "../"
+    chart_file = "benchmark.svg" if lang == "en" else f"benchmark-{lang}.svg"
+    o = [START, f'<p class="lead">{lead(run, lang)}</p>',
+         f'<img class="chart" src="{up}{chart_file}" alt="{escape(t["chart_alt"])}">',
+         f'<div class="scroll"><table class="results"><thead><tr><th>{t["sample"]}</th><th>{t["tesseract"]}</th>'
+         f'<th>{t["paddleocr"]}</th><th>daRealKniga</th></tr></thead><tbody>']
+    for name, r in run["samples"].items():
         cells = []
         for k in ("tesseract", "paddleocr", "darealkniga"):
-            s = r["systems"].get(k)
-            v = f"{100 * s['word_f1']:.1f}%" if s else "–"
+            sc = r["systems"].get(k)
+            v = pct(sc["word_f1"], lang) if sc else "–"
             cells.append(f'<td class="num{" best" if k == "darealkniga" else ""}">{v}</td>')
-        o.append(f'<tr><td>{escape(r["title"])}<small>{escape(r["description"])}</small></td>{"".join(cells)}</tr>')
-    o.append("</tbody></table></div>")
-    o.append('<p class="note">Word accuracy: the share of words read exactly right. A Latin letter in place of '
-             'its Cyrillic look-alike counts as an error, because the word can no longer be found by search.</p>')
+        title, desc = sample_title(name, r, lang)
+        o.append(f'<tr><td>{escape(title)}<small>{escape(desc)}</small></td>{"".join(cells)}</tr>')
+    o.append(f'</tbody></table></div><p class="note">{t["note_accuracy"]}</p>')
     ex = pick_examples(run)
     if ex:
-        b = lambda s: f'<b class="wrong">{s}</b>'
-        o.append('<h3>Words plain OCR got wrong</h3><div class="scroll"><table class="examples"><thead><tr>'
-                 '<th>Printed</th><th>Tesseract alone</th><th>PaddleOCR alone</th><th>daRealKniga</th></tr></thead>'
-                 '<tbody>')
+        b = lambda x: f'<b class="wrong">{x}</b>'
+        o.append(f'<h3>{t["examples"]}</h3><div class="scroll"><table class="examples"><thead><tr>'
+                 f'<th>{t["printed"]}</th><th>{t["tesseract"]}</th><th>{t["paddleocr"]}</th><th>daRealKniga</th>'
+                 f'</tr></thead><tbody>')
         for e in ex:
-            cells = [_mark(e[k] if k != "paddleocr" else e.get(k), e["ref"], b, escape)
-                     for k in ("tesseract", "paddleocr", "darealkniga")]
+            cells = [_mark(e.get(k), e["ref"], b, escape) for k in ("tesseract", "paddleocr", "darealkniga")]
             o.append(f'<tr><td>{escape(e["ref"])}</td>' + "".join(f"<td>{c}</td>" for c in cells) + "</tr>")
-        o.append('</tbody></table></div><p class="note"><b class="wrong">Highlighted</b> letters come from the '
-                 'wrong alphabet: they look identical on screen, but the word can\'t be searched.</p>')
+        o.append(f'</tbody></table></div><p class="note">{t["note_wrong"]}</p>')
     env = run.get("environment", {})
-    o.append(f'<p class="note">Measured {run["date"]} with daRealKniga {escape(env.get("darealkniga", "?"))}, '
-             f'Tesseract {escape(env.get("tesseract", "?"))} and PaddleOCR {escape(env.get("paddleocr", "?"))}. '
-             'All three read the same page images with the same OCR models.</p>')
+    o.append('<p class="note">' + t["measured"].format(
+        date=run["date"], v=escape(env.get("darealkniga", "?")), t=escape(env.get("tesseract", "?")),
+        p=escape(env.get("paddleocr", "?"))) + "</p>")
     o.append(END)
     return "\n".join(o)
 
 
 def update_site(run):
-    try:
-        with open(SITE, encoding="utf-8") as f:
-            s = f.read()
-    except OSError:
-        return
-    if START in s and END in s:
-        s = s[:s.index(START)] + site_section(run) + s[s.index(END) + len(END):]
-        with open(SITE, "w", encoding="utf-8") as f:
-            f.write(s)
+    """Refresh the benchmark part of every project page, and the translated charts."""
+    for lang, path in SITES.items():
+        if lang != "en":
+            with open(os.path.join(ROOT, "docs", f"benchmark-{lang}.svg"), "w", encoding="utf-8") as f:
+                f.write(chart(run, lang))
+        try:
+            with open(path, encoding="utf-8") as f:
+                s = f.read()
+        except OSError:
+            continue
+        if START in s and END in s:
+            s = s[:s.index(START)] + site_section(run, lang) + s[s.index(END) + len(END):]
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(s)
+
+
+def pct(x, lang):
+    v = f"{100 * x:.1f}"
+    return (v if lang == "en" else v.replace(".", ",")) + ("\u00a0%" if lang == "fr" else "%")
+
+
+def times(v, lang):
+    s = f"{v:.1f}"
+    return s if lang == "en" else s.replace(".", ",")
+
+
+def lead(run, lang="en"):
+    """'daRealKniga misreads on average 2.2x fewer words than ...' in the page's language."""
+    sm = summary(run)
+    return SITE_TEXT[lang]["lead"].format(t=times(sm.get("tesseract", 0), lang), p=times(sm.get("paddleocr", 0), lang))
+
+
+def sample_title(name, r, lang):
+    if lang == "en":
+        return r["title"], r["description"]
+    return SAMPLE_TEXT[lang].get(name, (r["title"], r["description"]))
+
+
+SITES = {lang: os.path.join(ROOT, "docs", *([] if lang == "en" else [lang]), "index.html")
+         for lang in ("en", "ru", "bg", "fr")}
+
+SITE_TEXT = {
+    "en": dict(
+        chart_title="Words misread (lower is better)", tesseract="Tesseract alone", paddleocr="PaddleOCR alone",
+        darealkniga="daRealKniga", words="{n} words", exact="exact reference",
+        lead="daRealKniga misreads on average <strong>{t}× fewer words</strong> than Tesseract alone and "
+             "<strong>{p}× fewer words</strong> than PaddleOCR alone.",
+        chart_alt="Words misread by Tesseract alone, PaddleOCR alone and daRealKniga, per sample (lower is better)",
+        sample="Sample", printed="Printed", examples="Words plain OCR got wrong",
+        note_accuracy="Word accuracy: the share of words read exactly right. A Latin letter in place of its "
+                      "Cyrillic look-alike counts as an error, because the word can no longer be found by search.",
+        note_wrong='<b class="wrong">Highlighted</b> letters come from the wrong alphabet: they look identical on '
+                   "screen, but the word can't be searched.",
+        measured="Measured {date} with daRealKniga {v}, Tesseract {t} and PaddleOCR {p}. All three read the same "
+                 "page images with the same OCR models."),
+    "ru": dict(
+        chart_title="Ошибочно прочитанные слова (чем меньше, тем лучше)", tesseract="Только Tesseract",
+        paddleocr="Только PaddleOCR", darealkniga="daRealKniga", words="слов: {n}", exact="точный эталон",
+        lead="В среднем daRealKniga ошибается в словах <strong>в {t} раза реже</strong>, чем один Tesseract, и "
+             "<strong>в {p} раза реже</strong>, чем один PaddleOCR.",
+        chart_alt="Доля ошибочно прочитанных слов: только Tesseract, только PaddleOCR и daRealKniga по каждому "
+                  "образцу (чем меньше, тем лучше)",
+        sample="Образец", printed="Напечатано", examples="Слова, в которых ошибается обычный OCR",
+        note_accuracy="Точность по словам: доля слов, прочитанных абсолютно верно. Латинская буква вместо похожей "
+                      "кириллической считается ошибкой: такое слово уже не найти поиском.",
+        note_wrong='<b class="wrong">Выделенные</b> буквы взяты из другого алфавита: на экране они выглядят так же, '
+                   "но слово перестаёт находиться поиском.",
+        measured="Измерено {date}: daRealKniga {v}, Tesseract {t}, PaddleOCR {p}. Все три читают одни и те же "
+                 "изображения страниц одними и теми же моделями OCR."),
+    "bg": dict(
+        chart_title="Сгрешени думи (колкото по-малко, толкова по-добре)", tesseract="Само Tesseract",
+        paddleocr="Само PaddleOCR", darealkniga="daRealKniga", words="думи: {n}", exact="точен еталон",
+        lead="Средно daRealKniga греши в <strong>{t} пъти по-малко думи</strong> от самия Tesseract и в "
+             "<strong>{p} пъти по-малко думи</strong> от самия PaddleOCR.",
+        chart_alt="Дял на сгрешените думи: само Tesseract, само PaddleOCR и daRealKniga за всеки образец "
+                  "(колкото по-малко, толкова по-добре)",
+        sample="Образец", printed="Отпечатано", examples="Думи, които обикновеният OCR чете грешно",
+        note_accuracy="Точност по думи: делът на думите, прочетени напълно вярно. Латинска буква на мястото на "
+                      "подобна кирилска се брои за грешка, защото думата вече не може да се намери с търсене.",
+        note_wrong='<b class="wrong">Отбелязаните</b> букви са от другата азбука: на екрана изглеждат същите, но '
+                   "думата не може да се намери с търсене.",
+        measured="Измерено на {date} с daRealKniga {v}, Tesseract {t} и PaddleOCR {p}. И трите четат едни и същи "
+                 "изображения на страниците с едни и същи модели за OCR."),
+    "fr": dict(
+        chart_title="Mots mal lus (moins, c’est mieux)", tesseract="Tesseract seul", paddleocr="PaddleOCR seul",
+        darealkniga="daRealKniga", words="{n} mots", exact="référence exacte",
+        lead="En moyenne, daRealKniga lit mal <strong>{t} fois moins de mots</strong> que Tesseract seul et "
+             "<strong>{p} fois moins</strong> que PaddleOCR seul.",
+        chart_alt="Part des mots mal lus par Tesseract seul, PaddleOCR seul et daRealKniga, par échantillon "
+                  "(moins, c’est mieux)",
+        sample="Échantillon", printed="Imprimé", examples="Mots que l’OCR classique lit mal",
+        note_accuracy="Précision par mot : la part des mots lus exactement. Une lettre latine à la place de son "
+                      "sosie cyrillique compte comme une erreur, car le mot devient introuvable par la recherche.",
+        note_wrong='Les lettres <b class="wrong">surlignées</b> viennent du mauvais alphabet : identiques à '
+                   "l’écran, elles rendent le mot introuvable.",
+        measured="Mesuré le {date} avec daRealKniga {v}, Tesseract {t} et PaddleOCR {p}. Les trois lisent les mêmes "
+                 "images de pages avec les mêmes modèles d’OCR."),
+}
+
+SAMPLE_TEXT = {  # (title, description) of each benchmark sample on the translated pages
+    "ru": {
+        "mixed-bg": ("Страница учебника: болгарский + английский",
+                     "синтетический скан страницы учебника: болгарский текст с английскими словами и предложениями"),
+        "mixed-ru": ("Техническая страница: русский + английский",
+                     "синтетический скан страницы руководства: русский текст с английскими терминами, командами и "
+                     "названиями"),
+        "photo-bg": ("Фото с телефона: болгарский + английский",
+                     "синтетическое фото страницы путеводителя (изогнутой, в перспективе, при неровном свете): "
+                     "болгарский текст с английскими названиями и фразами"),
+        "djvu-ru": ("Русский роман, скан DjVu", "режим сканов DjVu, русская проза (Вазов, «Под игом», 1970)"),
+        "pdf-ru": ("Русский роман, скан PDF",
+                   "PDF того же издания (обрезанные плоские сканы); эталон — текстовый слой DjVu"),
+        "pdf-bg": ("Болгарские стихи, PDF низкого разрешения",
+                   "болгарская поэзия и проза, развороты 133 dpi (Вазов, «Събрани съчинения», т. 4, 1974); "
+                   "в самом эталоне много ошибок OCR"),
+    },
+    "bg": {
+        "mixed-bg": ("Страница от учебник: български + английски",
+                     "синтетично сканиране на страница от учебник: български текст с английски думи и изречения"),
+        "mixed-ru": ("Техническа страница: руски + английски",
+                     "синтетично сканиране на страница от ръководство: руски текст с английски термини, команди и "
+                     "имена"),
+        "photo-bg": ("Снимка с телефон: български + английски",
+                     "синтетична снимка на страница от пътеводител (извита, в перспектива, при неравна светлина): "
+                     "български текст с английски имена и изрази"),
+        "djvu-ru": ("Руски роман, сканиране в DjVu", "режим за DjVu сканирания, руска проза (Вазов, „Под игом“, 1970)"),
+        "pdf-ru": ("Руски роман, сканиране в PDF",
+                   "PDF от същото издание (изрязани плоски сканирания); еталонът е текстовият слой на DjVu"),
+        "pdf-bg": ("Български стихове, PDF с ниска резолюция",
+                   "българска поезия и проза, разгърнати страници при 133 dpi (Вазов, „Събрани съчинения“, т. 4, "
+                   "1974); самият еталон съдържа много грешки от OCR"),
+    },
+    "fr": {
+        "mixed-bg": ("Page de manuel : bulgare + anglais",
+                     "scan synthétique d’une page de manuel de langue : du bulgare avec des mots et des phrases en "
+                     "anglais"),
+        "mixed-ru": ("Page technique : russe + anglais",
+                     "scan synthétique d’une page de mode d’emploi : du russe avec des termes, des commandes et des "
+                     "noms en anglais"),
+        "photo-bg": ("Photo au téléphone : bulgare + anglais",
+                     "photo synthétique d’une page de guide de voyage (courbée, en perspective, éclairage inégal) : "
+                     "du bulgare avec des noms et des expressions en anglais"),
+        "djvu-ru": ("Roman russe, scan DjVu", "mode scan DjVu, prose russe (Vazov, « Sous le joug », 1970)"),
+        "pdf-ru": ("Roman russe, scan PDF",
+                   "PDF de la même édition (scans à plat recadrés) ; référence : la couche texte du DjVu"),
+        "pdf-bg": ("Poèmes bulgares, PDF basse résolution",
+                   "poésie et prose bulgares, doubles pages à 133 dpi (Vazov, Œuvres, t. 4, 1974) ; la référence "
+                   "contient elle-même beaucoup d’erreurs d’OCR"),
+    },
+}

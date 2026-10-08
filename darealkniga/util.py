@@ -25,6 +25,22 @@ def extend_path():
         os.environ["PATH"] = os.pathsep.join(have + extra)
 
 
+def imread(path, flags=1):
+    """cv2.imread for any file name: OpenCV can't open non-ASCII paths on Windows (1 = colour, 0 = grey)."""
+    import cv2
+    import numpy as np
+    return cv2.imdecode(np.fromfile(path, dtype=np.uint8), flags)
+
+
+def imwrite(path, img):
+    """cv2.imwrite for any file name (see imread)."""
+    import cv2
+    ok, buf = cv2.imencode(os.path.splitext(path)[1] or ".png", img)
+    if not ok:
+        raise OSError(f"could not encode {path}")
+    buf.tofile(path)
+
+
 def log(msg):
     print(f"[darealkniga] {msg}", flush=True)
 

@@ -8,7 +8,8 @@ PY=${PYTHON:-python3}
 "$PY" -c 'import sys; assert sys.version_info >= (3, 10), "Python 3.10+ required"'
 [ -d .venv ] || "$PY" -m venv .venv
 .venv/bin/pip install --upgrade pip >/dev/null
-.venv/bin/pip install -e ".[gui]"
+# --prefer-binary: take the newest version with a ready-made build for this system (e.g. older macOS)
+.venv/bin/pip install --prefer-binary -e ".[gui]"
 mkdir -p "$HOME/.local/bin"
 ln -sf "$PWD/.venv/bin/darealkniga" "$HOME/.local/bin/darealkniga"
 ln -sf "$PWD/.venv/bin/drk" "$HOME/.local/bin/drk"

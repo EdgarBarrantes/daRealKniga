@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>daRealKniga — OCR для славянских языков</title>
+<meta name="description" content="Бесплатное распознавание текста для старых книг, архивов и документов на славянских языках и английском: из сканов и фото с телефона — точные копии в PDF с поиском, даже когда кириллица и латиница перемешаны.">
+<meta property="og:title" content="daRealKniga: OCR для славянских и английских текстов">
+<meta property="og:description" content="Сканы и фото с телефона на входе, чистые PDF с поиском на выходе. Смешанный кириллический и латинский текст читается гораздо лучше, чем обычным OCR.">
+<meta property="og:image" content="https://edgarbarrantes.github.io/daRealKniga/screenshot.png">
+<link rel="icon" href="../icon.png">
+<link rel="alternate" hreflang="en" href="https://edgarbarrantes.github.io/daRealKniga/">
+<link rel="alternate" hreflang="ru" href="https://edgarbarrantes.github.io/daRealKniga/ru/">
+<link rel="alternate" hreflang="bg" href="https://edgarbarrantes.github.io/daRealKniga/bg/">
+<link rel="alternate" hreflang="fr" href="https://edgarbarrantes.github.io/daRealKniga/fr/">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<main>
+
+<header class="hero">
+  <nav class="langs" aria-label="Language"><a href="../" lang="en">English</a><a href="../ru/" lang="ru" aria-current="page">Русский</a><a href="../bg/" lang="bg">Български</a><a href="../fr/" lang="fr">Français</a></nav>
+  <img class="logo" src="../icon.png" alt="">
+  <h1>daRealKniga</h1>
+  <p class="tag">Превращает старые книги, архивы и повседневные документы в точные цифровые копии, <strong>по которым можно искать</strong>. Создано для славянских языков и английского, даже вперемешку на одной странице.</p>
+  <p class="gloss">«Да, настоящая книга»: с настоящим текстом, по которому можно искать.</p>
+  <div class="buttons">
+    <a class="btn primary" href="#get-it">Скачать бесплатно</a>
+    <a class="btn" href="#accuracy">Насколько это хорошо?</a>
+    <a class="btn" href="https://github.com/EdgarBarrantes/daRealKniga">Исходный код на GitHub</a>
+  </div>
+</header>
+
+<img class="demo" src="../demo.gif" width="806" height="638" alt="Изогнутое фото страницы на болгарском и английском перетаскивают в daRealKniga; получается чистый PDF с поиском; ошибки обычного OCR показаны рядом с результатом daRealKniga.">
+<p class="caption">Настоящий запуск: на входе фото с телефона, на выходе PDF с поиском, а для сравнения — обычный OCR на том же фото (интерфейс на английском; программа доступна и на русском).</p>
+
+<h2 id="what">Что она делает</h2>
+<div class="cards">
+  <div class="card"><h3>PDF с поиском</h3><p>Превращает книги в DjVu, PDF из картинок, фото и сканы в PDF, где текст можно искать, выделять и копировать. Также сохраняет простой текстовый файл, а для книг в DjVu — DjVu с поиском.</p></div>
+  <div class="card"><h3>Кириллица и латиница вперемешку</h3><p>В учебниках, словарях и двуязычных документах каждое слово остаётся в своём алфавите. Похожие буквы (<code>а</code>/<code>a</code>, <code>р</code>/<code>p</code>, <code>Н</code>/<code>H</code>) больше не ломают поиск.</p></div>
+  <div class="card"><h3>Не только сканы, но и фото</h3><p>Изогнутые, наклонённые, затенённые страницы с телефона сначала выпрямляются и очищаются, а все страницы получаются одного размера.</p></div>
+  <div class="card"><h3>Ваш язык, ваш компьютер</h3><p>Интерфейс доступен на 31 языке, включая все славянские. Всё работает на вашем компьютере: документы никуда не отправляются.</p></div>
+</div>
+
+<h2 id="books">Для старых книг и архивов</h2>
+<p>daRealKniga создана для оцифровки целых книг и собраний так, как этого ждут библиотеки и архивы: верно оригиналу, единообразно и с поиском.</p>
+<div class="cards">
+  <div class="card"><h3>Оригинал остаётся нетронутым</h3><p>В сканах DjVu изображения страниц сохраняются в точности, добавляется только невидимый текстовый слой. Рядом сохраняются PDF и текстовый файл.</p></div>
+  <div class="card"><h3>Целые книги, а не отдельные страницы</h3><p>Сотни страниц обрабатываются параллельно. Прерванная обработка продолжается с того же места, а диапазон страниц позволяет сначала проверить настройки на нескольких страницах.</p></div>
+  <div class="card"><h3>Старая печать, разнородные сканы</h3><p>Все страницы получаются одного размера, даже если сканы различаются. Проверено на болгарских и русских изданиях 1970-х годов по их существующему тексту.</p></div>
+  <div class="card"><h3>Готово для каталога и конфиденциально</h3><p>Название и автор сохраняются в PDF. Всё работает на вашем компьютере: собрания никуда не уходят, а форматы открытые (PDF, DjVu, простой текст).</p></div>
+</div>
+
+<h2 id="accuracy">Лучше обычного OCR</h2>
+<p>Каждый образец читается тремя способами по одним и тем же изображениям страниц: только Tesseract, только PaddleOCR и daRealKniga, которая очищает страницы, объединяет оба движка слово за словом и исправляет их ошибки.</p>
+<!-- benchmark:start -->
+<p class="lead">В среднем daRealKniga ошибается в словах <strong>в 2,2 раза реже</strong>, чем один Tesseract, и <strong>в 3,4 раза реже</strong>, чем один PaddleOCR.</p>
+<img class="chart" src="../benchmark-ru.svg" alt="Доля ошибочно прочитанных слов: только Tesseract, только PaddleOCR и daRealKniga по каждому образцу (чем меньше, тем лучше)">
+<div class="scroll"><table class="results"><thead><tr><th>Образец</th><th>Только Tesseract</th><th>Только PaddleOCR</th><th>daRealKniga</th></tr></thead><tbody>
+<tr><td>Страница учебника: болгарский + английский<small>синтетический скан страницы учебника: болгарский текст с английскими словами и предложениями</small></td><td class="num">97,9%</td><td class="num">86,2%</td><td class="num best">99,8%</td></tr>
+<tr><td>Техническая страница: русский + английский<small>синтетический скан страницы руководства: русский текст с английскими терминами, командами и названиями</small></td><td class="num">98,3%</td><td class="num">84,7%</td><td class="num best">99,4%</td></tr>
+<tr><td>Фото с телефона: болгарский + английский<small>синтетическое фото страницы путеводителя (изогнутой, в перспективе, при неровном свете): болгарский текст с английскими названиями и фразами</small></td><td class="num">89,4%</td><td class="num">82,6%</td><td class="num best">98,1%</td></tr>
+<tr><td>Русский роман, скан DjVu<small>режим сканов DjVu, русская проза (Вазов, «Под игом», 1970)</small></td><td class="num">88,0%</td><td class="num">90,9%</td><td class="num best">95,6%</td></tr>
+<tr><td>Русский роман, скан PDF<small>PDF того же издания (обрезанные плоские сканы); эталон — текстовый слой DjVu</small></td><td class="num">88,1%</td><td class="num">88,4%</td><td class="num best">95,4%</td></tr>
+<tr><td>Болгарские стихи, PDF низкого разрешения<small>болгарская поэзия и проза, развороты 133 dpi (Вазов, «Събрани съчинения», т. 4, 1974); в самом эталоне много ошибок OCR</small></td><td class="num">87,3%</td><td class="num">87,2%</td><td class="num best">88,4%</td></tr>
+</tbody></table></div><p class="note">Точность по словам: доля слов, прочитанных абсолютно верно. Латинская буква вместо похожей кириллической считается ошибкой: такое слово уже не найти поиском.</p>
+<h3>Слова, в которых ошибается обычный OCR</h3><div class="scroll"><table class="examples"><thead><tr><th>Напечатано</th><th>Только Tesseract</th><th>Только PaddleOCR</th><th>daRealKniga</th></tr></thead><tbody>
+<tr><td>а</td><td><b class="wrong">a</b></td><td>–</td><td>а ✓</td></tr>
+<tr><td>open</td><td><b class="wrong">ореп</b></td><td><b class="wrong">оре</b>n</td><td>open ✓</td></tr>
+<tr><td>монастырских</td><td>мопастырских</td><td>мопастырскнх</td><td>монастырских ✓</td></tr>
+<tr><td>внимание</td><td>впимание</td><td>вшнмание</td><td>внимание ✓</td></tr>
+<tr><td>наполняя</td><td>паполпяя</td><td>паполняя</td><td>наполняя ✓</td></tr>
+<tr><td>стену</td><td>степу</td><td>–</td><td>стену ✓</td></tr>
+<tr><td>них</td><td>пих</td><td>пих</td><td>них ✓</td></tr>
+<tr><td>са</td><td><b class="wrong">ca</b></td><td>са ✓</td><td>са ✓</td></tr>
+<tr><td>нов</td><td><b class="wrong">HOB</b></td><td>нов ✓</td><td>нов ✓</td></tr>
+<tr><td>от</td><td><b class="wrong">OT</b></td><td>от ✓</td><td>от ✓</td></tr>
+<tr><td>or</td><td><b class="wrong">ог</b></td><td>or ✓</td><td>or ✓</td></tr>
+<tr><td>да</td><td><b class="wrong">na</b></td><td>да ✓</td><td>да ✓</td></tr>
+</tbody></table></div><p class="note"><b class="wrong">Выделенные</b> буквы взяты из другого алфавита: на экране они выглядят так же, но слово перестаёт находиться поиском.</p>
+<p class="note">Измерено 2026-10-08: daRealKniga 0.3.0, Tesseract 5.3.4, PaddleOCR 3.7.0. Все три читают одни и те же изображения страниц одними и теми же моделями OCR.</p>
+<!-- benchmark:end -->
+<p class="note">Образцы, способ оценки и как повторить проверку самостоятельно описаны в <a href="https://github.com/EdgarBarrantes/daRealKniga#tests">README</a> (на английском).</p>
+
+<h2 id="get-it">Скачать</h2>
+<p>Бесплатно и с открытым кодом (MIT). При первом запуске загружаются модели OCR: около 45&nbsp;МБ и ещё 10–15&nbsp;МБ на каждый язык.</p>
+<div class="get">
+  <div class="card">
+    <h3>Linux</h3>
+    <p>Один файл, в котором есть всё. Сделайте его исполняемым и запустите двойным щелчком. Работает в 64-битных дистрибутивах примерно с 2022 года.</p>
+    <a class="btn primary" href="https://github.com/EdgarBarrantes/daRealKniga/releases/latest">Скачать AppImage</a>
+  </div>
+  <div class="card">
+    <h3>macOS <span class="wip">в разработке</span></h3>
+    <p>Apple Silicon и Intel. Устанавливается через Homebrew и несколько команд в Терминале.</p>
+    <a class="btn" href="https://github.com/EdgarBarrantes/daRealKniga#install-on-macos">Установка на macOS</a>
+  </div>
+  <div class="card">
+    <h3>Windows <span class="wip">в разработке</span></h3>
+    <p>64-битные Windows 10 и 11. Устанавливается несколькими командами PowerShell.</p>
+    <a class="btn" href="https://github.com/EdgarBarrantes/daRealKniga#install-on-windows">Установка на Windows</a>
+  </div>
+</div>
+<p class="note">Поддержка macOS и Windows появилась недавно: если что-то не работает или инструкции непонятны, пожалуйста, <a href="https://github.com/EdgarBarrantes/daRealKniga/issues/new/choose">напишите нам</a>. Мы будем очень благодарны за отзывы.</p>
+
+<h2 id="use">Как пользоваться</h2>
+<p>Откройте окно, перетащите документ, выберите язык текста и нажмите <strong>Распознать текст</strong>. Или используйте командную строку (<code>drk</code> — короткая форма <code>darealkniga</code>):</p>
+<div class="scroll"><table><tbody>
+  <tr><td><code>drk make book.djvu --lang bul+eng</code></td><td>Болгарский учебник с английским текстом</td></tr>
+  <tr><td><code>drk make book.pdf --lang bul --title "Под игото" --author "Иван Вазов"</code></td><td>Болгарская книга; название и автор сохраняются в PDF</td></tr>
+  <tr><td><code>drk make receipt.jpg --lang ukr+eng</code></td><td>Одно фото: чек, письмо, записка</td></tr>
+  <tr><td><code>drk make phone-photos/ --lang rus</code></td><td>Папка с фотографиями страниц, по порядку</td></tr>
+</tbody></table></div>
+
+<footer>
+  <p><a href="https://github.com/EdgarBarrantes/daRealKniga">GitHub</a> · <a href="https://github.com/EdgarBarrantes/daRealKniga/issues/new/choose">Сообщить о проблеме или предложить идею</a> · лицензия MIT</p>
+  <p>Основано на Tesseract, PaddleOCR, UVDoc и DjVuLibre.</p>
+</footer>
+</main>
+</body>
+</html>

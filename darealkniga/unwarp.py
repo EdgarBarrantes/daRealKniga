@@ -5,7 +5,7 @@ import os
 import numpy as np
 from PIL import Image
 
-from .util import pool_map
+from .util import imread, pool_map
 
 _MODEL = None
 
@@ -20,7 +20,8 @@ def _init(threads):
 
 def _one(job):
     src, dst = job
-    a = np.asarray(_MODEL.predict(src)[0]["doctr_img"]).clip(0, 255).astype(np.uint8)  # already RGB
+    # the image itself, not its path: Paddle opens files with OpenCV, which fails on non-ASCII paths on Windows
+    a = np.asarray(_MODEL.predict(imread(src))[0]["doctr_img"]).clip(0, 255).astype(np.uint8)  # already RGB
     Image.fromarray(a).save(dst + ".part.png")
     os.replace(dst + ".part.png", dst)
 

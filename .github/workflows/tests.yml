@@ -40,7 +40,7 @@ jobs:
         if: runner.os == 'Windows'
         run: choco install tesseract -y --no-progress
       - name: Install
-        run: pip install -e ".[gui,test]"
+        run: pip install --prefer-binary -e ".[gui,test]"
       - name: Unit and interface tests
         run: pytest -m "not accuracy"
       - name: Check the installation

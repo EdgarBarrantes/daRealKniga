@@ -19,7 +19,7 @@ import numpy as np
 from PIL import Image
 
 from . import djvu, enhance, fuse, langs as langs_mod, ocr, pdf, sources, textlayer, unwarp
-from .util import Progress, log, warn, parse_pages, pool_map, read_json, write_json
+from .util import Progress, imread, imwrite, log, warn, parse_pages, pool_map, read_json, write_json
 
 PHOTO_DPI = 400  # resolution of cleaned page images
 
@@ -180,18 +180,18 @@ def run_djvu(cfg):
 # ------------------------------------------------------------------ photo (images / image PDF)
 
 def _is_flat(path):
-    return enhance.is_flat_scan(cv2.imread(path, cv2.IMREAD_GRAYSCALE))
+    return enhance.is_flat_scan(imread(path, cv2.IMREAD_GRAYSCALE))
 
 
 def _enhance_one(job):
     src, out, mask_out, size, color, trim = job
-    img = cv2.cvtColor(cv2.imread(src, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
+    img = cv2.cvtColor(imread(src, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
     page, mask, colorful = enhance.enhance(img, size, color, trim)
     if colorful:
-        cv2.imwrite(out + ".part.png", cv2.cvtColor(page, cv2.COLOR_RGB2BGR))
+        imwrite(out + ".part.png", cv2.cvtColor(page, cv2.COLOR_RGB2BGR))
     else:
-        cv2.imwrite(mask_out, mask)
-        cv2.imwrite(out + ".part.png", page)
+        imwrite(mask_out, mask)
+        imwrite(out + ".part.png", page)
     os.replace(out + ".part.png", out)
 
 

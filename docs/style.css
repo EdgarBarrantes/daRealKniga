@@ -1,0 +1,75 @@
+:root {
+  --bg: #f6f8fa; --card: #ffffff; --ink: #1f2328; --muted: #57606a; --line: #d0d7de;
+  --brand: #2b4f97; --brand-ink: #ffffff; --good: #1a7f37; --bad: #b42020; --bad-bg: #ffdcda;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1117; --card: #161b22; --ink: #e6edf3; --muted: #9198a1; --line: #30363d;
+    --brand: #7aa2f7; --brand-ink: #0d1117; --good: #3fb950; --bad: #ff7b72; --bad-bg: #4a1e1e;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d1117; --card: #161b22; --ink: #e6edf3; --muted: #9198a1; --line: #30363d;
+  --brand: #7aa2f7; --brand-ink: #0d1117; --good: #3fb950; --bad: #ff7b72; --bad-bg: #4a1e1e;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); line-height: 1.55;
+       font: 17px/1.55 -apple-system, "Segoe UI", system-ui, Roboto, "Noto Sans", Helvetica, Arial, sans-serif; }
+main { max-width: 980px; margin: 0 auto; padding: 0 16px 56px; }
+a { color: var(--brand); }
+img { max-width: 100%; height: auto; }
+h1, h2, h3 { line-height: 1.2; margin: 0 0 .5em; }
+h2 { font-size: 1.7rem; margin-top: 2.6em; }
+h3 { font-size: 1.15rem; margin-top: 1.8em; }
+p { margin: 0 0 1em; }
+
+.hero { text-align: center; padding: 56px 0 24px; }
+.hero img.logo { width: 84px; height: 84px; }
+.hero h1 { font-size: clamp(2.3rem, 7vw, 3.4rem); margin: .25em 0 .2em; letter-spacing: -.02em; }
+.hero .tag { font-size: 1.25rem; color: var(--ink); max-width: 680px; margin: 0 auto .6em; }
+.hero .gloss { color: var(--muted); font-size: .98rem; }
+.buttons { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 26px 0 8px; }
+.btn { display: inline-block; padding: 11px 20px; border-radius: 9px; text-decoration: none; font-weight: 600;
+       border: 1px solid var(--line); background: var(--card); color: var(--ink); }
+.btn.primary { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
+.btn:hover { filter: brightness(1.06); }
+
+.demo { display: block; width: 100%; max-width: 760px; margin: 28px auto 6px; border-radius: 12px; border: 1px solid var(--line);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, .12); }
+.caption { text-align: center; color: var(--muted); font-size: .92rem; }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px 18px 6px; }
+.card h3 { margin-top: 0; }
+.card p { color: var(--muted); font-size: .97rem; }
+
+.lead { font-size: 1.2rem; }
+.chart { display: block; margin: 18px auto; border-radius: 12px; border: 1px solid var(--line); }
+.scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line);
+        border-radius: 12px; overflow: hidden; font-size: .97rem; }
+th, td { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+th { color: var(--muted); font-weight: 600; font-size: .88rem; }
+tr:last-child td { border-bottom: 0; }
+td small { display: block; color: var(--muted); font-size: .82rem; }
+td.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+td.best { font-weight: 700; color: var(--good); }
+b.wrong { color: var(--bad); background: var(--bad-bg); border-radius: 3px; padding: 0 2px; }
+.note { color: var(--muted); font-size: .88rem; margin-top: .7em; }
+
+.get { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; }
+.get .card a.btn { margin: 4px 0 14px; }
+.wip { display: inline-block; font-size: .78rem; font-weight: 600; color: var(--muted);
+       border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; margin-left: 4px; vertical-align: 2px; }
+footer { text-align: center; color: var(--muted); font-size: .9rem; margin-top: 56px; }
+@media (max-width: 560px) {
+  body { font-size: 16px; } .hero { padding-top: 36px; }
+  table { font-size: .88rem; } th, td { padding: 8px 6px; } td small { display: none; }
+}
+
+.langs { position: absolute; top: 14px; right: 16px; font-size: .9rem; }
+.langs a { color: var(--muted); text-decoration: none; margin-left: 10px; }
+.langs a[aria-current] { color: var(--ink); font-weight: 600; }
+.hero { position: relative; }
+@media (max-width: 560px) { .langs { position: static; text-align: center; margin-bottom: 16px; } .langs a { margin: 0 6px; } }

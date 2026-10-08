@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="919" height="638" viewBox="0 0 919 638" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif">
+<rect width="919" height="638" rx="14" fill="#ffffff" stroke="#d0d7de"/>
+<text x="24" y="38" font-size="20" font-weight="700" fill="#1f2328">Ошибочно прочитанные слова (чем меньше, тем лучше)</text>
+<text x="24" y="62" font-size="13.5" fill="#57606a">В среднем daRealKniga ошибается в словах в 2,2 раза реже, чем один Tesseract, и в 3,4 раза реже, чем один PaddleOCR.</text>
+<rect x="24" y="84" width="12" height="12" rx="2" fill="#a3abb5"/><text x="41" y="94.5" font-size="12.5" fill="#1f2328">Только Tesseract</text>
+<rect x="174" y="84" width="12" height="12" rx="2" fill="#8cb8d9"/><text x="191" y="94.5" font-size="12.5" fill="#1f2328">Только PaddleOCR</text>
+<rect x="324" y="84" width="12" height="12" rx="2" fill="#2b4f97"/><text x="341" y="94.5" font-size="12.5" fill="#1f2328">daRealKniga</text>
+<line x1="349.0" y1="116" x2="349.0" y2="598" stroke="#eaeef2"/><text x="349.0" y="616" font-size="11.5" fill="#57606a" text-anchor="middle">0%</text>
+<line x1="474.0" y1="116" x2="474.0" y2="598" stroke="#eaeef2"/><text x="474.0" y="616" font-size="11.5" fill="#57606a" text-anchor="middle">5%</text>
+<line x1="599.0" y1="116" x2="599.0" y2="598" stroke="#eaeef2"/><text x="599.0" y="616" font-size="11.5" fill="#57606a" text-anchor="middle">10%</text>
+<line x1="724.0" y1="116" x2="724.0" y2="598" stroke="#eaeef2"/><text x="724.0" y="616" font-size="11.5" fill="#57606a" text-anchor="middle">15%</text>
+<line x1="849.0" y1="116" x2="849.0" y2="598" stroke="#eaeef2"/><text x="849.0" y="616" font-size="11.5" fill="#57606a" text-anchor="middle">20%</text>
+<text x="335" y="147.5" font-size="13.5" font-weight="600" fill="#1f2328" text-anchor="end">Страница учебника: болгарский + английский</text><text x="335" y="164.5" font-size="11.5" fill="#57606a" text-anchor="end">mixed-bg · слов: 239 · точный эталон</text>
+<rect x="349" y="124" width="52.3" height="15" rx="3" fill="#a3abb5"/><text x="407.3" y="135.5" font-size="12" fill="#1f2328">2.1%</text>
+<rect x="349" y="142" width="345.2" height="15" rx="3" fill="#8cb8d9"/><text x="700.2" y="153.5" font-size="12" fill="#1f2328">13.8%</text>
+<rect x="349" y="160" width="5.2" height="15" rx="3" fill="#2b4f97"/><text x="360.2" y="171.5" font-size="12" font-weight="700" fill="#1f2328">0.2%</text>
+<text x="335" y="224.5" font-size="13.5" font-weight="600" fill="#1f2328" text-anchor="end">Техническая страница: русский + английский</text><text x="335" y="241.5" font-size="11.5" fill="#57606a" text-anchor="end">mixed-ru · слов: 174 · точный эталон</text>
+<rect x="349" y="201" width="43.1" height="15" rx="3" fill="#a3abb5"/><text x="398.1" y="212.5" font-size="12" fill="#1f2328">1.7%</text>
+<rect x="349" y="219" width="381.8" height="15" rx="3" fill="#8cb8d9"/><text x="736.8" y="230.5" font-size="12" fill="#1f2328">15.3%</text>
+<rect x="349" y="237" width="14.4" height="15" rx="3" fill="#2b4f97"/><text x="369.4" y="248.5" font-size="12" font-weight="700" fill="#1f2328">0.6%</text>
+<text x="335" y="301.5" font-size="13.5" font-weight="600" fill="#1f2328" text-anchor="end">Фото с телефона: болгарский + английский</text><text x="335" y="318.5" font-size="11.5" fill="#57606a" text-anchor="end">photo-bg · слов: 162 · точный эталон</text>
+<rect x="349" y="278" width="264.4" height="15" rx="3" fill="#a3abb5"/><text x="619.4" y="289.5" font-size="12" fill="#1f2328">10.6%</text>
+<rect x="349" y="296" width="434.4" height="15" rx="3" fill="#8cb8d9"/><text x="789.4" y="307.5" font-size="12" fill="#1f2328">17.4%</text>
+<rect x="349" y="314" width="46.3" height="15" rx="3" fill="#2b4f97"/><text x="401.3" y="325.5" font-size="12" font-weight="700" fill="#1f2328">1.9%</text>
+<text x="335" y="378.5" font-size="13.5" font-weight="600" fill="#1f2328" text-anchor="end">Русский роман, скан DjVu</text><text x="335" y="395.5" font-size="11.5" fill="#57606a" text-anchor="end">djvu-ru · слов: 1339</text>
+<rect x="349" y="355" width="300.6" height="15" rx="3" fill="#a3abb5"/><text x="655.6" y="366.5" font-size="12" fill="#1f2328">12.0%</text>
+<rect x="349" y="373" width="228.3" height="15" rx="3" fill="#8cb8d9"/><text x="583.3" y="384.5" font-size="12" fill="#1f2328">9.1%</text>
+<rect x="349" y="391" width="110.2" height="15" rx="3" fill="#2b4f97"/><text x="465.2" y="402.5" font-size="12" font-weight="700" fill="#1f2328">4.4%</text>
+<text x="335" y="455.5" font-size="13.5" font-weight="600" fill="#1f2328" text-anchor="end">Русский роман, скан PDF</text><text x="335" y="472.5" font-size="11.5" fill="#57606a" text-anchor="end">pdf-ru · слов: 1339</text>
+<rect x="349" y="432" width="298.7" height="15" rx="3" fill="#a3abb5"/><text x="653.7" y="443.5" font-size="12" fill="#1f2328">11.9%</text>
+<rect x="349" y="450" width="289.3" height="15" rx="3" fill="#8cb8d9"/><text x="644.3" y="461.5" font-size="12" fill="#1f2328">11.6%</text>
+<rect x="349" y="468" width="113.9" height="15" rx="3" fill="#2b4f97"/><text x="468.9" y="479.5" font-size="12" font-weight="700" fill="#1f2328">4.6%</text>
+<text x="335" y="532.5" font-size="13.5" font-weight="600" fill="#1f2328" text-anchor="end">Болгарские стихи, PDF низкого разрешения</text><text x="335" y="549.5" font-size="11.5" fill="#57606a" text-anchor="end">pdf-bg · слов: 603</text>
+<rect x="349" y="509" width="316.4" height="15" rx="3" fill="#a3abb5"/><text x="671.4" y="520.5" font-size="12" fill="#1f2328">12.7%</text>
+<rect x="349" y="527" width="320.0" height="15" rx="3" fill="#8cb8d9"/><text x="675.0" y="538.5" font-size="12" fill="#1f2328">12.8%</text>
+<rect x="349" y="545" width="290.2" height="15" rx="3" fill="#2b4f97"/><text x="645.2" y="556.5" font-size="12" font-weight="700" fill="#1f2328">11.6%</text>
+</svg>

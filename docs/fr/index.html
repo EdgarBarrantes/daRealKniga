@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>daRealKniga — OCR pour les langues slaves</title>
+<meta name="description" content="OCR gratuit pour les livres anciens, les archives et les documents en langues slaves et en anglais : des scans et des photos au téléphone deviennent des PDF fidèles et interrogeables, même quand cyrillique et latin se mélangent.">
+<meta property="og:title" content="daRealKniga : OCR pour les textes slaves et anglais">
+<meta property="og:description" content="Des scans et des photos au téléphone en entrée, des PDF propres et interrogeables en sortie. Lit le texte mêlant cyrillique et latin bien mieux qu’un OCR classique.">
+<meta property="og:image" content="https://edgarbarrantes.github.io/daRealKniga/screenshot.png">
+<link rel="icon" href="../icon.png">
+<link rel="alternate" hreflang="en" href="https://edgarbarrantes.github.io/daRealKniga/">
+<link rel="alternate" hreflang="ru" href="https://edgarbarrantes.github.io/daRealKniga/ru/">
+<link rel="alternate" hreflang="bg" href="https://edgarbarrantes.github.io/daRealKniga/bg/">
+<link rel="alternate" hreflang="fr" href="https://edgarbarrantes.github.io/daRealKniga/fr/">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<main>
+
+<header class="hero">
+  <nav class="langs" aria-label="Language"><a href="../" lang="en">English</a><a href="../ru/" lang="ru">Русский</a><a href="../bg/" lang="bg">Български</a><a href="../fr/" lang="fr" aria-current="page">Français</a></nav>
+  <img class="logo" src="../icon.png" alt="">
+  <h1>daRealKniga</h1>
+  <p class="tag">Transformez livres anciens, archives et documents du quotidien en copies numériques fidèles et <strong>interrogeables</strong>. Conçu pour les langues slaves et l’anglais, même mélangés sur une même page.</p>
+  <p class="gloss"><em>да</em> = oui, <em>книга</em> = livre : « oui, un vrai livre », avec un vrai texte, interrogeable.</p>
+  <div class="buttons">
+    <a class="btn primary" href="#get-it">Télécharger gratuitement</a>
+    <a class="btn" href="#accuracy">Quelle qualité ?</a>
+    <a class="btn" href="https://github.com/EdgarBarrantes/daRealKniga">Code source sur GitHub</a>
+  </div>
+</header>
+
+<img class="demo" src="../demo.gif" width="806" height="638" alt="La photo courbée d’une page en bulgare et en anglais est déposée dans daRealKniga ; il en sort un PDF propre et interrogeable ; les erreurs d’un OCR classique sont montrées à côté du résultat de daRealKniga.">
+<p class="caption">Une exécution réelle : une photo au téléphone en entrée, un PDF interrogeable en sortie et, pour comparer, un OCR classique sur la même photo (interface en anglais ; le logiciel existe aussi en français).</p>
+
+<h2 id="what">Ce qu’il fait</h2>
+<div class="cards">
+  <div class="card"><h3>Des PDF interrogeables</h3><p>Transforme livres DjVu, PDF d’images, photos et scans en PDF où l’on peut chercher, sélectionner et copier le texte. Il écrit aussi un fichier texte brut et, pour les livres DjVu, un DjVu interrogeable.</p></div>
+  <div class="card"><h3>Cyrillique et latin mélangés</h3><p>Dans les manuels, dictionnaires et documents bilingues, chaque mot garde son propre alphabet. Les lettres sosies (<code>а</code>/<code>a</code>, <code>р</code>/<code>p</code>, <code>Н</code>/<code>H</code>) ne cassent plus la recherche.</p></div>
+  <div class="card"><h3>Des photos, pas seulement des scans</h3><p>Les pages courbées, inclinées ou ombrées photographiées au téléphone sont d’abord redressées et nettoyées, et toutes les pages finissent au même format.</p></div>
+  <div class="card"><h3>Votre langue, votre ordinateur</h3><p>L’interface existe en 31 langues, dont toutes les langues slaves. Tout fonctionne sur votre ordinateur : vos documents ne le quittent jamais.</p></div>
+</div>
+
+<h2 id="books">Pour les livres anciens et les archives</h2>
+<p>daRealKniga est conçu pour numériser des livres entiers et des collections comme le souhaiterait une bibliothèque ou un service d’archives : fidèles à l’original, cohérents et interrogeables.</p>
+<div class="cards">
+  <div class="card"><h3>L’original reste intact</h3><p>Les scans DjVu gardent leurs images de pages telles quelles ; seule une couche de texte invisible est ajoutée. Un PDF et un fichier texte brut sont écrits à côté.</p></div>
+  <div class="card"><h3>Des livres entiers, pas seulement des pages</h3><p>Des centaines de pages sont traitées en parallèle. Un traitement interrompu reprend là où il s’est arrêté, et une plage de pages permet d’essayer les réglages sur quelques pages d’abord.</p></div>
+  <div class="card"><h3>Impressions anciennes, scans disparates</h3><p>Toutes les pages finissent au même format, même quand les scans diffèrent. Testé sur des éditions bulgares et russes des années 1970, par rapport à leur texte existant.</p></div>
+  <div class="card"><h3>Prêt pour le catalogue, et confidentiel</h3><p>Le titre et l’auteur sont enregistrés dans le PDF. Tout fonctionne sur votre ordinateur : les collections ne le quittent jamais, et les formats sont ouverts (PDF, DjVu, texte brut).</p></div>
+</div>
+
+<h2 id="accuracy">Meilleur qu’un OCR classique</h2>
+<p>Chaque échantillon est lu de trois façons à partir des mêmes images de pages : par Tesseract seul, par PaddleOCR seul et par daRealKniga, qui nettoie les pages, combine les deux moteurs mot par mot et corrige leurs erreurs.</p>
+<!-- benchmark:start -->
+<p class="lead">En moyenne, daRealKniga lit mal <strong>2,2 fois moins de mots</strong> que Tesseract seul et <strong>3,4 fois moins</strong> que PaddleOCR seul.</p>
+<img class="chart" src="../benchmark-fr.svg" alt="Part des mots mal lus par Tesseract seul, PaddleOCR seul et daRealKniga, par échantillon (moins, c’est mieux)">
+<div class="scroll"><table class="results"><thead><tr><th>Échantillon</th><th>Tesseract seul</th><th>PaddleOCR seul</th><th>daRealKniga</th></tr></thead><tbody>
+<tr><td>Page de manuel : bulgare + anglais<small>scan synthétique d’une page de manuel de langue : du bulgare avec des mots et des phrases en anglais</small></td><td class="num">97,9 %</td><td class="num">86,2 %</td><td class="num best">99,8 %</td></tr>
+<tr><td>Page technique : russe + anglais<small>scan synthétique d’une page de mode d’emploi : du russe avec des termes, des commandes et des noms en anglais</small></td><td class="num">98,3 %</td><td class="num">84,7 %</td><td class="num best">99,4 %</td></tr>
+<tr><td>Photo au téléphone : bulgare + anglais<small>photo synthétique d’une page de guide de voyage (courbée, en perspective, éclairage inégal) : du bulgare avec des noms et des expressions en anglais</small></td><td class="num">89,4 %</td><td class="num">82,6 %</td><td class="num best">98,1 %</td></tr>
+<tr><td>Roman russe, scan DjVu<small>mode scan DjVu, prose russe (Vazov, « Sous le joug », 1970)</small></td><td class="num">88,0 %</td><td class="num">90,9 %</td><td class="num best">95,6 %</td></tr>
+<tr><td>Roman russe, scan PDF<small>PDF de la même édition (scans à plat recadrés) ; référence : la couche texte du DjVu</small></td><td class="num">88,1 %</td><td class="num">88,4 %</td><td class="num best">95,4 %</td></tr>
+<tr><td>Poèmes bulgares, PDF basse résolution<small>poésie et prose bulgares, doubles pages à 133 dpi (Vazov, Œuvres, t. 4, 1974) ; la référence contient elle-même beaucoup d’erreurs d’OCR</small></td><td class="num">87,3 %</td><td class="num">87,2 %</td><td class="num best">88,4 %</td></tr>
+</tbody></table></div><p class="note">Précision par mot : la part des mots lus exactement. Une lettre latine à la place de son sosie cyrillique compte comme une erreur, car le mot devient introuvable par la recherche.</p>
+<h3>Mots que l’OCR classique lit mal</h3><div class="scroll"><table class="examples"><thead><tr><th>Imprimé</th><th>Tesseract seul</th><th>PaddleOCR seul</th><th>daRealKniga</th></tr></thead><tbody>
+<tr><td>а</td><td><b class="wrong">a</b></td><td>–</td><td>а ✓</td></tr>
+<tr><td>open</td><td><b class="wrong">ореп</b></td><td><b class="wrong">оре</b>n</td><td>open ✓</td></tr>
+<tr><td>монастырских</td><td>мопастырских</td><td>мопастырскнх</td><td>монастырских ✓</td></tr>
+<tr><td>внимание</td><td>впимание</td><td>вшнмание</td><td>внимание ✓</td></tr>
+<tr><td>наполняя</td><td>паполпяя</td><td>паполняя</td><td>наполняя ✓</td></tr>
+<tr><td>стену</td><td>степу</td><td>–</td><td>стену ✓</td></tr>
+<tr><td>них</td><td>пих</td><td>пих</td><td>них ✓</td></tr>
+<tr><td>са</td><td><b class="wrong">ca</b></td><td>са ✓</td><td>са ✓</td></tr>
+<tr><td>нов</td><td><b class="wrong">HOB</b></td><td>нов ✓</td><td>нов ✓</td></tr>
+<tr><td>от</td><td><b class="wrong">OT</b></td><td>от ✓</td><td>от ✓</td></tr>
+<tr><td>or</td><td><b class="wrong">ог</b></td><td>or ✓</td><td>or ✓</td></tr>
+<tr><td>да</td><td><b class="wrong">na</b></td><td>да ✓</td><td>да ✓</td></tr>
+</tbody></table></div><p class="note">Les lettres <b class="wrong">surlignées</b> viennent du mauvais alphabet : identiques à l’écran, elles rendent le mot introuvable.</p>
+<p class="note">Mesuré le 2026-10-08 avec daRealKniga 0.3.0, Tesseract 5.3.4 et PaddleOCR 3.7.0. Les trois lisent les mêmes images de pages avec les mêmes modèles d’OCR.</p>
+<!-- benchmark:end -->
+<p class="note">Les échantillons, la notation et la façon de refaire le test vous-même sont décrits dans le <a href="https://github.com/EdgarBarrantes/daRealKniga#tests">README</a> (en anglais).</p>
+
+<h2 id="get-it">Télécharger</h2>
+<p>Gratuit et libre (MIT). Le premier lancement télécharge les modèles d’OCR : environ 45&nbsp;Mo, plus 10 à 15&nbsp;Mo par langue.</p>
+<div class="get">
+  <div class="card">
+    <h3>Linux</h3>
+    <p>Un seul fichier qui contient tout. Rendez-le exécutable et double-cliquez dessus. Fonctionne sur les distributions 64 bits depuis 2022 environ.</p>
+    <a class="btn primary" href="https://github.com/EdgarBarrantes/daRealKniga/releases/latest">Télécharger l’AppImage</a>
+  </div>
+  <div class="card">
+    <h3>macOS <span class="wip">en cours</span></h3>
+    <p>Apple Silicon et Intel. S’installe avec Homebrew et quelques commandes dans le Terminal.</p>
+    <a class="btn" href="https://github.com/EdgarBarrantes/daRealKniga#install-on-macos">Installer sur macOS</a>
+  </div>
+  <div class="card">
+    <h3>Windows <span class="wip">en cours</span></h3>
+    <p>Windows 10 et 11 en 64 bits. S’installe avec quelques commandes PowerShell.</p>
+    <a class="btn" href="https://github.com/EdgarBarrantes/daRealKniga#install-on-windows">Installer sur Windows</a>
+  </div>
+</div>
+<p class="note">La prise en charge de macOS et de Windows est récente : si quelque chose ne marche pas ou si les instructions ne sont pas claires, <a href="https://github.com/EdgarBarrantes/daRealKniga/issues/new/choose">dites-le-nous</a>. Vos retours sont très appréciés.</p>
+
+<h2 id="use">Utilisation</h2>
+<p>Ouvrez la fenêtre, déposez-y un document, choisissez la langue du texte et cliquez sur <strong>Reconnaître le texte</strong>. Ou utilisez la ligne de commande (<code>drk</code> est la forme courte de <code>darealkniga</code>) :</p>
+<div class="scroll"><table><tbody>
+  <tr><td><code>drk make book.djvu --lang bul+eng</code></td><td>Un manuel bulgare avec de l’anglais</td></tr>
+  <tr><td><code>drk make book.pdf --lang bul --title "Под игото" --author "Иван Вазов"</code></td><td>Un livre bulgare, avec le titre et l’auteur enregistrés dans le PDF</td></tr>
+  <tr><td><code>drk make receipt.jpg --lang ukr+eng</code></td><td>Une seule photo : un ticket, une lettre, une note</td></tr>
+  <tr><td><code>drk make phone-photos/ --lang rus</code></td><td>Un dossier de photos de pages, dans l’ordre</td></tr>
+</tbody></table></div>
+
+<footer>
+  <p><a href="https://github.com/EdgarBarrantes/daRealKniga">GitHub</a> · <a href="https://github.com/EdgarBarrantes/daRealKniga/issues/new/choose">Signaler un problème ou proposer une idée</a> · licence MIT</p>
+  <p>Construit sur Tesseract, PaddleOCR, UVDoc et DjVuLibre.</p>
+</footer>
+</main>
+</body>
+</html>
