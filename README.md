@@ -74,16 +74,17 @@ code, so every change can be compared with the previous results.
 
 ![Words misread by Tesseract alone, PaddleOCR alone and daRealKniga](docs/benchmark.svg)
 
-Across the samples, daRealKniga misreads on average **2.2× fewer words** than Tesseract alone and **3.4× fewer words** than PaddleOCR alone. All three read the same original page images with the same OCR models; the difference is daRealKniga's page cleanup, the combination of both engines and its corrections.
+Across the samples, daRealKniga misreads on average **2.4× fewer words** than Tesseract alone and **3.4× fewer words** than PaddleOCR alone. All three read the same original page images with the same OCR models; the difference is daRealKniga's page cleanup, the combination of both engines and its corrections.
 
 | Sample | Words | Tesseract alone | PaddleOCR alone | **daRealKniga** |
 |---|---:|---:|---:|---:|
 | Bulgarian + English textbook page <br><sub>synthetic scan of a language-textbook page: Bulgarian with English words and sentences</sub> | 239 | 97.9% | 86.2% | **99.8%** |
 | Russian + English technical page <br><sub>synthetic scan of a manual page: Russian with English terms, commands and names</sub> | 174 | 98.3% | 84.7% | **99.4%** |
 | Phone photo, Bulgarian + English <br><sub>synthetic phone photo of a travel-guide page (curled, in perspective, uneven light): Bulgarian with English names and phrases</sub> | 162 | 89.4% | 82.6% | **98.1%** |
+| Phone photo of a receipt, Bulgarian <br><sub>synthetic phone photo of a utility-bill receipt: label and value columns, prices, dates, long account numbers, EUR and BGN</sub> | 189 | 89.3% | 93.7% | **97.6%** |
 | Russian novel, DjVu scan <br><sub>DjVu scan mode, Russian prose (Вазов, Под игом, 1970)</sub> | 1339 | 88.0% | 90.9% | **95.6%** |
 | Russian novel, PDF scan <br><sub>PDF of the same edition (cropped flat scans); reference = the DjVu text layer</sub> | 1339 | 88.1% | 88.4% | **95.4%** |
-| Bulgarian poems, low-res PDF <br><sub>Bulgarian poetry and prose, 133 dpi two-page spreads (Вазов, Събрани съчинения т. 4, 1974); the reference has many OCR errors of its own</sub> | 603 | 87.3% | 87.2% | **88.4%** |
+| Bulgarian poems, low-res PDF <br><sub>Bulgarian poetry and prose, 133 dpi two-page spreads (Вазов, Събрани съчинения т. 4, 1974); the reference has many OCR errors of its own</sub> | 603 | 87.3% | 87.2% | **88.2%** |
 
 <sub>Word accuracy: the share of words read exactly right (letter case aside; a Latin letter in place of its Cyrillic look-alike counts as an error, because it breaks search). Synthetic pages have an exact reference; for real scans the reference is the book's existing text layer, itself OCR, so those numbers measure agreement.</sub>
 
@@ -93,11 +94,11 @@ Across the samples, daRealKniga misreads on average **2.2× fewer words** than T
 |---|---|---|---|
 | а | **a** | – | а ✓ |
 | open | **ореп** | **оре**n | open ✓ |
+| по | **no** | – | по ✓ |
+| високо | **eucoko** | ниско | Високо ✓ |
+| ниско | **Hucko** | – | ниско ✓ |
 | монастырских | мопастырских | мопастырскнх | монастырских ✓ |
 | внимание | впимание | вшнмание | внимание ✓ |
-| наполняя | паполпяя | паполняя | наполняя ✓ |
-| стену | степу | – | стену ✓ |
-| них | пих | пих | них ✓ |
 | са | **ca** | са ✓ | са ✓ |
 | нов | **HOB** | нов ✓ | нов ✓ |
 | от | **OT** | от ✓ | от ✓ |
@@ -108,7 +109,7 @@ Across the samples, daRealKniga misreads on average **2.2× fewer words** than T
 
 </details>
 
-<sub>Last run 2026-10-08 · daRealKniga 0.3.0 · Tesseract 5.3.4 · PaddleOCR 3.7.0. Reproduce with `python tests/accuracy.py --save`; see [Tests](#tests).</sub>
+<sub>Last run 2026-10-11 · daRealKniga 0.3.0 · Tesseract 5.3.4 · PaddleOCR 3.7.0. Reproduce with `python tests/accuracy.py --save`; see [Tests](#tests).</sub>
 
 <!-- benchmark:end -->
 

@@ -409,6 +409,9 @@ SAMPLE_TEXT = {  # (title, description) of each benchmark sample on the translat
         "photo-bg": ("Фото с телефона: болгарский + английский",
                      "синтетическое фото страницы путеводителя (изогнутой, в перспективе, при неровном свете): "
                      "болгарский текст с английскими названиями и фразами"),
+        "receipt-bg": ("Фото квитанции с телефона, болгарский",
+                       "синтетическое фото квитанции об оплате коммунальных услуг: столбцы названий и сумм, цены, "
+                       "даты, длинные номера счетов, EUR и BGN"),
         "djvu-ru": ("Русский роман, скан DjVu", "режим сканов DjVu, русская проза (Вазов, «Под игом», 1970)"),
         "pdf-ru": ("Русский роман, скан PDF",
                    "PDF того же издания (обрезанные плоские сканы); эталон — текстовый слой DjVu"),
@@ -425,6 +428,9 @@ SAMPLE_TEXT = {  # (title, description) of each benchmark sample on the translat
         "photo-bg": ("Снимка с телефон: български + английски",
                      "синтетична снимка на страница от пътеводител (извита, в перспектива, при неравна светлина): "
                      "български текст с английски имена и изрази"),
+        "receipt-bg": ("Снимка с телефон на разписка, български",
+                       "синтетична снимка на разписка за комунална сметка: колони с означения и суми, цени, дати, "
+                       "дълги абонатни номера, EUR и BGN"),
         "djvu-ru": ("Руски роман, сканиране в DjVu", "режим за DjVu сканирания, руска проза (Вазов, „Под игом“, 1970)"),
         "pdf-ru": ("Руски роман, сканиране в PDF",
                    "PDF от същото издание (изрязани плоски сканирания); еталонът е текстовият слой на DjVu"),
@@ -442,6 +448,9 @@ SAMPLE_TEXT = {  # (title, description) of each benchmark sample on the translat
         "photo-bg": ("Photo au téléphone : bulgare + anglais",
                      "photo synthétique d’une page de guide de voyage (courbée, en perspective, éclairage inégal) : "
                      "du bulgare avec des noms et des expressions en anglais"),
+        "receipt-bg": ("Photo d’un reçu au téléphone, bulgare",
+                       "photo synthétique d’un reçu de facture d’électricité : colonnes de libellés et de montants, "
+                       "prix, dates, longs numéros de compte, EUR et BGN"),
         "djvu-ru": ("Roman russe, scan DjVu", "mode scan DjVu, prose russe (Vazov, « Sous le joug », 1970)"),
         "pdf-ru": ("Roman russe, scan PDF",
                    "PDF de la même édition (scans à plat recadrés) ; référence : la couche texte du DjVu"),

@@ -1,6 +1,6 @@
 {
- "date": "2026-10-08",
- "commit": "d0dcd55",
+ "date": "2026-10-11",
+ "commit": "43f8dac",
  "environment": {
   "darealkniga": "0.3.0",
   "paddleocr": "3.7.0",
@@ -20,21 +20,24 @@
      "word_recall": 0.99581589958159,
      "word_precision": 1.0,
      "word_f1": 0.9979035639412999,
-     "char_acc": 0.9984555984555985
+     "char_acc": 0.9984555984555985,
+     "num_recall": 1.0
     },
     "tesseract": {
      "words": 239,
      "word_recall": 0.9790794979079498,
      "word_precision": 0.9790794979079498,
      "word_f1": 0.9790794979079498,
-     "char_acc": 0.9915057915057915
+     "char_acc": 0.9915057915057915,
+     "num_recall": 1.0
     },
     "paddleocr": {
      "words": 239,
      "word_recall": 0.8619246861924686,
      "word_precision": 0.8619246861924686,
      "word_f1": 0.8619246861924686,
-     "char_acc": 0.9513513513513514
+     "char_acc": 0.9513513513513514,
+     "num_recall": 1.0
     }
    },
    "outputs": {
@@ -43,14 +46,16 @@
      "word_recall": 0.99581589958159,
      "word_precision": 1.0,
      "word_f1": 0.9979035639412999,
-     "char_acc": 0.9984555984555985
+     "char_acc": 0.9984555984555985,
+     "num_recall": 1.0
     },
     "txt": {
      "words": 239,
      "word_recall": 0.99581589958159,
      "word_precision": 1.0,
      "word_f1": 0.9979035639412999,
-     "char_acc": 0.9984555984555985
+     "char_acc": 0.9984555984555985,
+     "num_recall": 1.0
     }
    },
    "fixes": [
@@ -92,21 +97,24 @@
      "word_recall": 0.9942528735632183,
      "word_precision": 0.9942528735632183,
      "word_f1": 0.9942528735632183,
-     "char_acc": 0.9991379310344828
+     "char_acc": 0.9991379310344828,
+     "num_recall": 0.75
     },
     "tesseract": {
      "words": 174,
      "word_recall": 0.9827586206896551,
      "word_precision": 0.9827586206896551,
      "word_f1": 0.9827586206896551,
-     "char_acc": 0.996551724137931
+     "char_acc": 0.996551724137931,
+     "num_recall": 0.75
     },
     "paddleocr": {
      "words": 174,
      "word_recall": 0.8448275862068966,
      "word_precision": 0.8497109826589595,
      "word_f1": 0.8472622478386167,
-     "char_acc": 0.9284482758620689
+     "char_acc": 0.9284482758620689,
+     "num_recall": 1.0
     }
    },
    "outputs": {
@@ -115,14 +123,16 @@
      "word_recall": 0.9942528735632183,
      "word_precision": 0.9942528735632183,
      "word_f1": 0.9942528735632183,
-     "char_acc": 0.9991379310344828
+     "char_acc": 0.9991379310344828,
+     "num_recall": 0.75
     },
     "txt": {
      "words": 174,
      "word_recall": 0.9942528735632183,
      "word_precision": 0.9942528735632183,
      "word_f1": 0.9942528735632183,
-     "char_acc": 0.9991379310344828
+     "char_acc": 0.9991379310344828,
+     "num_recall": 0.75
     }
    },
    "fixes": [
@@ -152,21 +162,24 @@
      "word_recall": 0.9814814814814815,
      "word_precision": 0.9814814814814815,
      "word_f1": 0.9814814814814815,
-     "char_acc": 0.9846153846153847
+     "char_acc": 0.9846153846153847,
+     "num_recall": 1.0
     },
     "tesseract": {
      "words": 162,
      "word_recall": 0.9135802469135802,
      "word_precision": 0.8757396449704142,
      "word_f1": 0.8942598187311177,
-     "char_acc": 0.7682051282051282
+     "char_acc": 0.7682051282051282,
+     "num_recall": 1.0
     },
     "paddleocr": {
      "words": 162,
      "word_recall": 0.7777777777777778,
      "word_precision": 0.8811188811188811,
      "word_f1": 0.8262295081967213,
-     "char_acc": 0.8174358974358974
+     "char_acc": 0.8174358974358974,
+     "num_recall": 1.0
     }
    },
    "outputs": {
@@ -175,14 +188,16 @@
      "word_recall": 0.9814814814814815,
      "word_precision": 0.9814814814814815,
      "word_f1": 0.9814814814814815,
-     "char_acc": 0.9846153846153847
+     "char_acc": 0.9846153846153847,
+     "num_recall": 1.0
     },
     "txt": {
      "words": 162,
      "word_recall": 0.9814814814814815,
      "word_precision": 0.9814814814814815,
      "word_f1": 0.9814814814814815,
-     "char_acc": 0.9846153846153847
+     "char_acc": 0.9846153846153847,
+     "num_recall": 1.0
     }
    },
    "fixes": [
@@ -200,6 +215,102 @@
     }
    ]
   },
+  "receipt-bg": {
+   "title": "Phone photo of a receipt, Bulgarian",
+   "description": "synthetic phone photo of a utility-bill receipt: label and value columns, prices, dates, long account numbers, EUR and BGN",
+   "lang": "bul+eng",
+   "pages": 1,
+   "synthetic": true,
+   "systems": {
+    "darealkniga": {
+     "words": 189,
+     "word_recall": 0.9788359788359788,
+     "word_precision": 0.9736842105263158,
+     "word_f1": 0.9762532981530344,
+     "char_acc": 0.978021978021978,
+     "num_recall": 1.0
+    },
+    "tesseract": {
+     "words": 189,
+     "word_recall": 0.8571428571428571,
+     "word_precision": 0.9310344827586207,
+     "word_f1": 0.8925619834710743,
+     "char_acc": 0.8221778221778222,
+     "num_recall": 0.7959183673469388
+    },
+    "paddleocr": {
+     "words": 189,
+     "word_recall": 0.9365079365079365,
+     "word_precision": 0.9365079365079365,
+     "word_f1": 0.9365079365079365,
+     "char_acc": 0.8351648351648352,
+     "num_recall": 1.0
+    }
+   },
+   "outputs": {
+    "pdf": {
+     "words": 189,
+     "word_recall": 0.9788359788359788,
+     "word_precision": 0.9736842105263158,
+     "word_f1": 0.9762532981530344,
+     "char_acc": 0.978021978021978,
+     "num_recall": 1.0
+    },
+    "txt": {
+     "words": 189,
+     "word_recall": 0.9788359788359788,
+     "word_precision": 0.9736842105263158,
+     "word_f1": 0.9762532981530344,
+     "char_acc": 0.978021978021978,
+     "num_recall": 1.0,
+     "row_acc": 0.9411764705882353
+    }
+   },
+   "fixes": [
+    {
+     "ref": "Касов",
+     "tesseract": "Kacos",
+     "paddleocr": "Касов",
+     "darealkniga": "Касов"
+    },
+    {
+     "ref": "от",
+     "tesseract": "or",
+     "paddleocr": "от",
+     "darealkniga": "от"
+    },
+    {
+     "ref": "ул",
+     "tesseract": "yn",
+     "paddleocr": "ул",
+     "darealkniga": "ул"
+    },
+    {
+     "ref": "вх",
+     "tesseract": "ex",
+     "paddleocr": "вх",
+     "darealkniga": "вх"
+    },
+    {
+     "ref": "по",
+     "tesseract": "no",
+     "paddleocr": null,
+     "darealkniga": "по"
+    },
+    {
+     "ref": "високо",
+     "tesseract": "eucoko",
+     "paddleocr": "ниско",
+     "darealkniga": "Високо"
+    },
+    {
+     "ref": "ниско",
+     "tesseract": "Hucko",
+     "paddleocr": null,
+     "darealkniga": "ниско"
+    }
+   ]
+  },
   "djvu-ru": {
    "title": "Russian novel, DjVu scan",
    "description": "DjVu scan mode, Russian prose (Вазов, Под игом, 1970)",
@@ -212,21 +323,24 @@
      "word_recall": 0.9559372666168783,
      "word_precision": 0.9559372666168783,
      "word_f1": 0.9559372666168783,
-     "char_acc": 0.9907677356656949
+     "char_acc": 0.9907677356656949,
+     "num_recall": 1.0
     },
     "tesseract": {
      "words": 1339,
      "word_recall": 0.8797610156833457,
      "word_precision": 0.8797610156833457,
      "word_f1": 0.8797610156833459,
-     "char_acc": 0.9774052478134111
+     "char_acc": 0.9774052478134111,
+     "num_recall": 1.0
     },
     "paddleocr": {
      "words": 1339,
      "word_recall": 0.9103808812546677,
      "word_precision": 0.9069940476190477,
      "word_f1": 0.9086843086097652,
-     "char_acc": 0.9797133138969873
+     "char_acc": 0.9797133138969873,
+     "num_recall": 1.0
     }
    },
    "outputs": {
@@ -235,21 +349,24 @@
      "word_recall": 0.9559372666168783,
      "word_precision": 0.9559372666168783,
      "word_f1": 0.9559372666168783,
-     "char_acc": 0.9907677356656949
+     "char_acc": 0.9907677356656949,
+     "num_recall": 1.0
     },
     "djvu": {
      "words": 1339,
      "word_recall": 0.9559372666168783,
      "word_precision": 0.9559372666168783,
      "word_f1": 0.9559372666168783,
-     "char_acc": 0.9907677356656949
+     "char_acc": 0.9907677356656949,
+     "num_recall": 1.0
     },
     "txt": {
      "words": 1339,
      "word_recall": 0.9559372666168783,
      "word_precision": 0.9559372666168783,
      "word_f1": 0.9559372666168783,
-     "char_acc": 0.9907677356656949
+     "char_acc": 0.9907677356656949,
+     "num_recall": 1.0
     }
    },
    "fixes": [
@@ -339,21 +456,24 @@
      "word_recall": 0.9544436146377894,
      "word_precision": 0.9544436146377894,
      "word_f1": 0.9544436146377894,
-     "char_acc": 0.9910106899902819
+     "char_acc": 0.9910106899902819,
+     "num_recall": 1.0
     },
     "tesseract": {
      "words": 1339,
      "word_recall": 0.8805078416728902,
      "word_precision": 0.8805078416728902,
      "word_f1": 0.8805078416728901,
-     "char_acc": 0.9776482021379981
+     "char_acc": 0.9776482021379981,
+     "num_recall": 1.0
     },
     "paddleocr": {
      "words": 1339,
      "word_recall": 0.8730395817774459,
      "word_precision": 0.8957854406130268,
      "word_f1": 0.8842662632375189,
-     "char_acc": 0.9268707482993197
+     "char_acc": 0.9268707482993197,
+     "num_recall": 1.0
     }
    },
    "outputs": {
@@ -362,14 +482,16 @@
      "word_recall": 0.9544436146377894,
      "word_precision": 0.9544436146377894,
      "word_f1": 0.9544436146377894,
-     "char_acc": 0.9910106899902819
+     "char_acc": 0.9910106899902819,
+     "num_recall": 1.0
     },
     "txt": {
      "words": 1339,
      "word_recall": 0.9544436146377894,
      "word_precision": 0.9544436146377894,
      "word_f1": 0.9544436146377894,
-     "char_acc": 0.9910106899902819
+     "char_acc": 0.9910106899902819,
+     "num_recall": 1.0
     }
    },
    "fixes": [
@@ -457,39 +579,44 @@
     "darealkniga": {
      "words": 603,
      "word_recall": 0.8839137645107794,
-     "word_precision": 0.8839137645107794,
-     "word_f1": 0.8839137645107795,
-     "char_acc": 0.8206505520740077
+     "word_precision": 0.8809917355371901,
+     "word_f1": 0.8824503311258278,
+     "char_acc": 0.8185616233960011,
+     "num_recall": 0.6666666666666666
     },
     "tesseract": {
      "words": 603,
      "word_recall": 0.8756218905472637,
      "word_precision": 0.8712871287128713,
      "word_f1": 0.8734491315136477,
-     "char_acc": 0.5899731423455685
+     "char_acc": 0.5899731423455685,
+     "num_recall": 0.6666666666666666
     },
     "paddleocr": {
      "words": 603,
      "word_recall": 0.8756218905472637,
      "word_precision": 0.868421052631579,
      "word_f1": 0.8720066061106524,
-     "char_acc": 0.39271859146523425
+     "char_acc": 0.39271859146523425,
+     "num_recall": 0.6666666666666666
     }
    },
    "outputs": {
     "pdf": {
      "words": 603,
      "word_recall": 0.8839137645107794,
-     "word_precision": 0.8839137645107794,
-     "word_f1": 0.8839137645107795,
-     "char_acc": 0.8206505520740077
+     "word_precision": 0.8809917355371901,
+     "word_f1": 0.8824503311258278,
+     "char_acc": 0.8185616233960011,
+     "num_recall": 0.6666666666666666
     },
     "txt": {
      "words": 603,
      "word_recall": 0.8839137645107794,
-     "word_precision": 0.8839137645107794,
-     "word_f1": 0.8839137645107795,
-     "char_acc": 0.8206505520740077
+     "word_precision": 0.8809917355371901,
+     "word_f1": 0.8824503311258278,
+     "char_acc": 0.8185616233960011,
+     "num_recall": 0.6666666666666666
     }
    },
    "fixes": [
