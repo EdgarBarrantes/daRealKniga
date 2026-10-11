@@ -288,6 +288,9 @@ darealkniga make phone-photos/ --lang rus --page-size 6x9
 
 # try a few pages first
 darealkniga make book.djvu --pages 1-20 -o /tmp/trial
+
+# a receipt or bill: one .txt line per printed row, labels next to their amounts
+darealkniga make receipt.jpg --lang bul+eng --text-layout rows
 ```
 
 Outputs go next to the input (or to `-o FOLDER`) as `<name> (OCR).pdf/.djvu/.txt`.
@@ -305,6 +308,7 @@ Main options (`darealkniga make --help` lists them all):
 | `--color auto/never/always` | photo mode: `auto` keeps colourful pages (covers) in colour and makes the rest greyscale |
 | `--unwarp auto/always/never` | photo mode: flatten with UVDoc. `auto` flattens only pages that look like photos (background or shadows around the page); cropped flat scans are left untouched |
 | `--formats pdf,djvu,txt` | which outputs to write |
+| `--text-layout blocks/rows` | `.txt` line order. `blocks` follows the reading order (books); `rows` writes one line per printed row, so each label stays next to its value (receipts, bills, forms, tables) |
 | `--pages 1-20,35` | process only some pages |
 | `-j, --jobs` | parallelism (default: all CPUs) |
 
@@ -331,6 +335,16 @@ Main options (`darealkniga make --help` lists them all):
      ("па", "мопастырь"). On pages where this happens systematically, lower-case words not
      in the lexicon are replaced by a far more frequent look-alike spelling. Names and
      isolated hits are left alone.
+   - **Numbers** come from PaddleOCR when the engines disagree: on receipts it reads digits
+     far more reliably. Its word positions are estimated, so its reading is used only when it
+     is clearly the same number (`0105111658`/`0105111058`, `02.08.`/`02.08.2026`), looked
+     for along the line when the position match lands on a neighbour. A confident PaddleOCR
+     number that Tesseract missed is kept, even inside one of Tesseract's boxes: on tightly
+     printed tables Tesseract sometimes reads one tall box over two rows.
+   - **Rows** (`--text-layout rows`). Tesseract reads a column of labels and a column of
+     values as separate blocks. Rows chain Tesseract's line pieces left to right, each joining
+     the row that continues at its height, following the page's tilt as measured on the
+     pieces themselves.
 5. **DjVu output.** The original file gets a hidden text layer with page, line and word
    boxes, and per-page dpi values that make every page display at the same width. The page
    images are not re-encoded.
@@ -407,9 +421,14 @@ comparison. The samples:
 | `djvu-ru` | Иван Вазов, *Под игом* (Russian edition, 1970), DjVu, 4 pages | the book's text layer | scan mode |
 | `pdf-ru` | the same edition as a PDF, 4 pages | the DjVu's text layer | photo mode (flat scans) |
 | `pdf-bg` | Иван Вазов, *Събрани съчинения*, т. 4 (1974), Bulgarian PDF, 3 two-page spreads | the book's text layer | photo mode |
+| `receipt-bg` | synthetic phone photo of a utility-bill receipt: label and value columns, prices, dates, long account numbers, EUR and BGN | exact | photo mode, `--text-layout rows` |
 
 - **Synthetic pages.** They are typeset in PT Serif from the texts in
-  [`tests/samples/`](tests/samples) and degraded like a scan (tilt, blur, noise, JPEG).
+  [`tests/samples/`](tests/samples) and degraded like a scan (tilt, blur, noise, JPEG). The
+  receipt is set in PT Mono, one printed row per line with tab-separated columns.
+- **Receipts** are also scored on their **numbers** (the share of printed amounts, dates and
+  account numbers read exactly) and their **rows** (the share of rows whose label and value
+  end up on one line of the `.txt`).
 - **Real scans.** These come from the Internet Archive.
 - **Downloads.** The books and the font are downloaded once (~40 MB) to
   `~/.cache/darealkniga/testdata` and checked against SHA-256 hashes.

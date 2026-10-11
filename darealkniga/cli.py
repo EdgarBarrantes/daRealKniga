@@ -49,6 +49,9 @@ def build_parser():
     m.add_argument("--engine", choices=["auto", "tesseract", "fused"], default="auto",
                    help="fused = Tesseract + PaddleOCR merged word by word (slower, more accurate); "
                         "auto picks fused for Cyrillic languages, Tesseract otherwise (default: auto)")
+    m.add_argument("--text-layout", choices=["blocks", "rows"], default="blocks",
+                   help=".txt line order: blocks = reading order (books); rows = one line per printed "
+                        "row, so labels stay next to their values (receipts, forms, tables) (default: blocks)")
     m.add_argument("--pages", help="only process these pages, e.g. 1-20,35 (for trials)")
     m.add_argument("--page-size", default="auto",
                    help="output page size in inches, e.g. 5.5x8.5 (default: auto)")

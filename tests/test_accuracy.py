@@ -42,6 +42,10 @@ def test_accuracy(sample, tmp_path):
             f"{sample.name}/{ext}: word accuracy {sc['word_f1']:.1%} < {sample.min_word_f1:.0%}"
         assert sc["char_acc"] >= sample.min_char_acc, \
             f"{sample.name}/{ext}: char accuracy {sc['char_acc']:.1%} < {sample.min_char_acc:.0%}"
+        assert sc["num_recall"] >= sample.min_num_recall, \
+            f"{sample.name}/{ext}: numbers read {sc['num_recall']:.1%} < {sample.min_num_recall:.0%}"
+        assert sc.get("row_acc", 1) >= sample.min_row_acc, \
+            f"{sample.name}/{ext}: rows kept {sc['row_acc']:.1%} < {sample.min_row_acc:.0%}"
     # the point of the project: better than either engine on its own
     for other in ("tesseract", "paddleocr"):
         if other in systems:

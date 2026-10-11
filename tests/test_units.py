@@ -47,6 +47,51 @@ def test_choose_prefers_known_reading():
     assert fuse.choose("Bulgarian", "Bulgarian", "lat") == "Bulgarian"
 
 
+@pytest.mark.parametrize("t, p, expected", [
+    ("0105111658", "0105111058", "0105111058"),   # same number, one digit differs: PaddleOCR
+    ("02.08.", "02.08.2026", "02.08.2026"),       # Tesseract cut the number short
+    ("1.9558", "=1.95583", "1.95583"),            # stray mark before PaddleOCR's number
+    ("163", "349", "163"),                        # a neighbouring number, not the same one
+    ("1125671110", "СТАНЦИОННА", "1125671110"),   # PaddleOCR's word is not a number
+    (":0,97733", "Дневна:0,12927Нощна:0,07733", "0,07733"),  # a number inside PaddleOCR's glued words
+    ("0,12927", "Дневна:0,12927Нощна:0,07733", "0,12927"),
+    ("2026", "за08/2026", "2026"),                # embedded numbers must match closely
+    ("69.26", "69.26", "69.26"),
+])
+def test_choose_numbers_prefer_paddle(t, p, expected):
+    # on receipts PaddleOCR reads digits far more reliably than Tesseract
+    assert fuse.choose(t, p, "cyr") == expected
+
+
+def test_fuse_keeps_paddle_numbers_tesseract_missed():
+    """Tesseract read one tall box over two table rows ('163') and missed the next columns;
+    PaddleOCR's confident numbers must not be dropped as 'covered' by that box."""
+    tw = lambda t, b: {"t": t, "conf": 95.0, "box": b}
+    pw = lambda t, b: {"t": t, "score": 1.0, "used": False, "box": b}
+    tlines = [[tw("Нощна", [258, 1049, 336, 1071]), tw("3456", [1121, 1050, 1182, 1070]),
+               tw("3619", [1250, 1051, 1309, 1071]), tw("163", [1425, 1022, 1469, 1073]),
+               tw("0.0", [1650, 1022, 1960, 1080])]]
+    pws = [pw("Нощна", [251, 1043, 341, 1076]), pw("3619", [1244, 1046, 1314, 1075]),
+           pw("349", [1418, 1012, 1474, 1040]), pw("163", [1418, 1046, 1474, 1077]),
+           pw("0.04103", [1673, 1045, 1794, 1078]), pw("6.68", [1878, 1047, 1949, 1080])]
+    words = [w["t"] for l in fuse.fuse_page(tlines, pws) for w in l]
+    for n in ("349", "0.04103", "6.68"):
+        assert n in words
+    assert words.count("163") == 1
+
+
+def test_fuse_finds_the_same_number_on_the_line():
+    """PaddleOCR's word positions are estimates: the matched word can be a neighbour
+    ('СТАНЦИОННА'), while the same number sits elsewhere on the line."""
+    tw = lambda t, b: {"t": t, "conf": 95.0, "box": b}
+    pw = lambda t, b: {"t": t, "score": 1.0, "used": False, "box": b}
+    tlines = [[tw("електромер", [100, 300, 260, 322]), tw("1125671110", [420, 300, 600, 322])]]
+    pws = [pw("електромер", [100, 300, 260, 322]), pw("СТАНЦИОННА", [430, 296, 610, 318]),
+           pw("1125071110189987", [400, 286, 700, 312])]
+    words = [w["t"] for l in fuse.fuse_page(tlines, pws) for w in l]
+    assert "1125071110189987" in words and "1125671110" not in words
+
+
 def test_repair_cyr():
     assert fuse.repair_cyr("пещо") == "нещо"
     assert fuse.repair_cyr("Пешо") is None          # capitalised: probably a name
@@ -90,6 +135,52 @@ def test_write_text_joins_hyphens(tmp_path):
     t = f.read_text(encoding="utf-8")
     assert t.split("\f")[0] == "Личността\nе\nБ-\nГ\n"
     assert t.count("\f") == 1
+
+
+def test_rows_join_label_and_value():
+    """Receipts: Tesseract reads the label column and the value column as separate blocks;
+    rows put each printed row back on one line, left to right, top to bottom."""
+    w = lambda t, x0, y0, x1, y1: {"t": t, "box": [x0, y0, x1, y1]}
+    lines = [[w("Дневна", 10, 100, 80, 120)], [w("Нощна", 10, 130, 70, 150)],
+             [w("32.45", 400, 102, 450, 121)], [w("6.68", 400, 131, 440, 151)],
+             [w("Сума", 10, 200, 60, 220), w("общо", 65, 200, 110, 220)], [w("69.26", 400, 198, 450, 218)]]
+    rows = textlayer.rows(lines)
+    assert [[x["t"] for x in r] for r in rows] == [["Дневна", "32.45"], ["Нощна", "6.68"], ["Сума", "общо", "69.26"]]
+
+
+def test_rows_follow_tilted_lines():
+    """A tilted photo: each printed row drops 18 px from left to right (more than half a line
+    height), so rows must follow the line pieces rather than the page's horizontal."""
+    w = lambda t, x0, y0: {"t": t, "box": [x0, y0, x0 + 60, y0 + 20]}
+    lines = [[w("Дневна", 10, 100), w("02.08.2026", 80, 103)], [w("Нощна", 10, 130), w("02.08.2026", 80, 133)],
+             [w("6141", 300, 112), w("32.45", 380, 118)], [w("3456", 300, 142), w("6.68", 380, 148)]]
+    rows = textlayer.rows(lines)
+    assert [[x["t"] for x in r] for r in rows] == [["Дневна", "02.08.2026", "6141", "32.45"],
+                                                    ["Нощна", "02.08.2026", "3456", "6.68"]]
+
+
+def test_rows_follow_the_page_tilt_across_wide_gaps():
+    """Labels on the left, values far right: over 900 px a 3% tilt drops 27 px, closer to the
+    next row's label (30 px down) than to its own. The tilt measured from the line pieces
+    themselves tells where each row continues."""
+    def piece(words, y):  # words: [(text, x0)], 3% tilt
+        return [{"t": t, "box": [x, y + 0.03 * x, x + 60, y + 0.03 * x + 20]} for t, x in words]
+    lines = [piece([("Достъп", 10), ("/високо", 80), ("напрежение/", 150)], 100),
+             piece([("Пренос", 10), ("/високо", 80), ("напрежение/", 150)], 130),
+             piece([("0.00801", 820), ("4.11", 900)], 100), piece([("0.00499", 820), ("2.55", 900)], 130)]
+    rows = textlayer.rows(lines)
+    assert [[x["t"] for x in r] for r in rows] == [["Достъп", "/високо", "напрежение/", "0.00801", "4.11"],
+                                                    ["Пренос", "/високо", "напрежение/", "0.00499", "2.55"]]
+
+
+def test_write_text_rows(tmp_path):
+    w = lambda t, x0, y0: {"t": t, "box": [x0, y0, x0 + 40, y0 + 20]}
+    page = {"lines": [[w("Сума", 10, 100)], [w("69.26", 300, 101)]]}
+    f = tmp_path / "t.txt"
+    textlayer.write_text([page], str(f), rows=True)
+    assert f.read_text(encoding="utf-8") == "Сума 69.26\n"
+    textlayer.write_text([page], str(f))
+    assert f.read_text(encoding="utf-8") == "Сума\n69.26\n"
 
 
 def test_pdf_text_layer_roundtrip(tmp_path):

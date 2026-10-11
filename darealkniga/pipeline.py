@@ -94,7 +94,7 @@ def _outputs(cfg, stem):
 def _finish(cfg, ws, pages, out_dir, name, written):
     txt = os.path.join(out_dir, name + ".txt")
     if "txt" in cfg.formats:
-        textlayer.write_text(pages, txt)
+        textlayer.write_text(pages, txt, rows=getattr(cfg, "text_layout", "blocks") == "rows")
         written.append(txt)
     write_json(os.path.join(ws.root, "ocr.json"), pages)
     log(f"recognised {textlayer.word_count(pages):,} words on {len(pages)} pages")

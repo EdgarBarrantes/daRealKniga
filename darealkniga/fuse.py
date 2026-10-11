@@ -25,6 +25,7 @@ LAT = re.compile(r"[A-Za-z]")
 L2C = dict(zip("aeopcxykAEOPCXYKBHMTrun", "аеорсхукАЕОРСХУКВНМТгип"))
 C2L = dict(zip("аеорсхукіјѕАЕОРСХУКВНМТІЈЅ", "aeopcxykijsAEOPCXYKBHMTIJS"))
 DIGIT_LOOKALIKE = {"1": "il", "0": "o"}
+NUMBER = re.compile(r"^\(?[\d.,:/%+-]*\d[\d.,:/%+-]*\)?$")
 
 
 def strip_acute(w):
@@ -252,6 +253,28 @@ def repair_page(lines, min_share=0.02, min_count=3):
     return lines
 
 
+def is_number(t):
+    return not has_letters(t) and bool(re.search(r"\d", t))
+
+
+def same_number(t, p):
+    """PaddleOCR's reading of the number Tesseract read as t, or None.
+    PaddleOCR reads digits far more reliably (on receipts it was right in every disagreement), but
+    its word positions are estimated, so its reading counts only when it is clearly the same number:
+    a whole number ('0105111658'/'0105111058', '02.08.'/'02.08.2026'), or, more strictly, a number
+    inside glued words (':0,97733' in 'Дневна:0,12927Нощна:0,07733')."""
+    core = t.strip("(),;:|=")
+    whole = re.sub(r"^[^\w(]+", "", p)
+    if NUMBER.match(whole):
+        return whole if difflib.SequenceMatcher(None, core, whole).ratio() >= 0.6 else None
+    best, r = None, 0.0
+    for n in re.findall(r"\d[\d.,:/%-]*\d|\d", p):
+        x = difflib.SequenceMatcher(None, core, n).ratio()
+        if x > r:
+            best, r = n, x
+    return best if r >= 0.8 else None
+
+
 def _choose(t, p, line_script):
     """t: tesseract word, p: paddle word or None."""
     single = len(re.sub(r"\W", "", t)) == 1 and has_letters(t)
@@ -267,6 +290,10 @@ def _choose(t, p, line_script):
         return tc
     if tc.lower() == pc.lower() and script(tc) == "cyr":
         return tc  # case-only differences are settled by resolve_case() with sentence context
+    if is_number(tc):
+        pn = same_number(tc, pc)
+        if pn:
+            return pn
     if not (0.5 <= len(pc) / max(1, len(tc)) <= 2) and abs(len(pc) - len(tc)) > 1:
         return tc  # probably mismatched words
     letters_p = len(re.sub(r"[\W\d_]", "", pc))
@@ -356,6 +383,26 @@ def match(tw, pws):
         if v > bestv:
             best, bestv = pw, v
     return best if bestv >= 0.4 else None
+
+
+def same_number_nearby(tw, pws):
+    """The PaddleOCR word on the same line, around Tesseract's number, that holds the same number
+    (for when the position match lands on a neighbour)."""
+    tb = tw["box"]
+    th, twd = tb[3] - tb[1], tb[2] - tb[0]
+    best, bestr = None, 0.0
+    for pw in pws:
+        pb = pw["box"]
+        if overlap((tb[1], tb[3]), (pb[1], pb[3])) < 0.3 * min(th, pb[3] - pb[1]):
+            continue
+        if abs((tb[0] + tb[2]) / 2 - (pb[0] + pb[2]) / 2) > max(twd, pb[2] - pb[0]):
+            continue
+        n = same_number(tw["t"], pw["t"])
+        if n:
+            r = difflib.SequenceMatcher(None, tw["t"].strip("(),;:|="), n).ratio()
+            if r > bestr:
+                best, bestr = pw, r
+    return best
 
 
 def page_script(tlines):
@@ -480,6 +527,8 @@ def fuse_page(tlines, pws):
                     words.append({"t": clean(p["t"]), "box": [round(v) for v in p["box"]]})
                 continue
             pw = match(tw, pws)
+            if is_number(tw["t"]) and not (pw and same_number(tw["t"], pw["t"])):
+                pw = same_number_nearby(tw, pws) or pw
             if pw:
                 pw["used"] = True
             txt = choose(tw["t"], pw["t"] if pw else None, ls)
@@ -497,19 +546,28 @@ def fuse_page(tlines, pws):
     # text paddle found but tesseract missed entirely
     tboxes = [tw["box"] for tl in tlines for tw in tl]
 
-    def covered(b):
-        for t in tboxes:
-            ix = overlap((b[0], b[2]), (t[0], t[2]))
-            iy = overlap((b[1], b[3]), (t[1], t[3]))
-            if ix * iy > 0.2 * min((b[2] - b[0]) * (b[3] - b[1]), (t[2] - t[0]) * (t[3] - t[1])):
-                return True
-        return False
+    def covers(b, t):
+        ix = overlap((b[0], b[2]), (t[0], t[2]))
+        iy = overlap((b[1], b[3]), (t[1], t[3]))
+        return ix * iy > 0.2 * min((b[2] - b[0]) * (b[3] - b[1]), (t[2] - t[0]) * (t[3] - t[1]))
 
+    def covered(b):
+        return any(covers(b, t) for t in tboxes)
+
+    out_words = [w for l in lines for w in l]
     extra = {}
     for pw in pws:
-        if pw["used"] or pw["score"] < 0.6 or len(re.sub(r"\W", "", pw["t"])) < 2:
+        if pw["score"] < 0.6 or len(re.sub(r"\W", "", pw["t"])) < 2:
             continue
-        if covered(pw["box"]):
+        pn = re.sub(r"^[^\w(]+", "", pw["t"]).rstrip(",;")
+        if pw["score"] >= 0.9 and NUMBER.match(pn):
+            # a confident number is kept unless the text already has it there: Tesseract sometimes
+            # reads one tall box over two table rows, which would hide the numbers beside it
+            if any(w["t"].strip("(),;:") == pn.strip("(),;:") and covers(pw["box"], w["box"])
+                   for w in out_words):
+                continue
+            pw = dict(pw, t=pn)
+        elif pw["used"] or covered(pw["box"]):
             continue
         key = round(pw["box"][1] / 20)
         extra.setdefault(key, []).append({"t": clean(pw["t"]), "box": [round(v) for v in pw["box"]]})

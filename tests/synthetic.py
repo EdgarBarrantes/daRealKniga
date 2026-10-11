@@ -8,6 +8,8 @@ typeset in PT Serif (a common Cyrillic book face) at 300 dpi. Two looks are prod
   uneven light with a shadow, at camera resolution with sensor noise.
 
 The first line of each text file is set as a bold heading; every other line is a paragraph.
+Receipts (layout "receipt") are set in a monospaced face instead, one printed row per line,
+with tab-separated columns: the label on the left, then its values (see typeset_receipt).
 """
 import random
 
@@ -64,10 +66,42 @@ def typeset(text, regular, bold, size=40):
     return page
 
 
-def render(text, out, regular, bold, seed=0, size=40):
+def typeset_receipt(text, mono, size=30):
+    """Clean greyscale receipt page: one row per line, columns separated by tabs. The label is
+    left-aligned; a single value starts at a tab stop; a table row's values are right-aligned in
+    evenly spaced columns over the right part of the page. Empty columns stay empty."""
+    page = Image.new("L", (W, H), 255)
+    d = ImageDraw.Draw(page)
+    font = ImageFont.truetype(mono, size)
+    right = W - MARGIN
+    lead = int(size * 1.55)
+    y = MARGIN
+    for line in text.strip("\n").split("\n"):
+        cols = line.split("\t")
+        d.text((MARGIN, y), cols[0], font=font, fill=0)
+        if len(cols) == 2:
+            d.text((MARGIN + int(0.4 * (right - MARGIN)), y), cols[1], font=font, fill=0)
+        elif len(cols) > 2:
+            n = len(cols) - 1
+            x0 = MARGIN + 0.42 * (right - MARGIN)
+            for k, c in enumerate(cols[1:], 1):
+                x1 = x0 + (right - x0) * k / n
+                d.text((x1 - d.textlength(c, font=font), y), c, font=font, fill=0)
+        y += lead
+        if y > H - MARGIN:
+            raise ValueError("text does not fit on the page")
+    return page
+
+
+def _page(text, fonts, size, layout):
+    regular, bold = fonts
+    return typeset_receipt(text, regular) if layout == "receipt" else typeset(text, regular, bold, size)
+
+
+def render(text, out, regular, bold, seed=0, size=40, layout="text"):
     """Typeset text and give it a scan look; JPEG at `out`. Returns the reference text."""
     rnd = random.Random(seed)
-    page = typeset(text, regular, bold, size)
+    page = _page(text, (regular, bold), size, layout)
     # scan look: tilt, soft focus, paper tone, noise, JPEG
     page = page.rotate(rnd.uniform(-0.6, 0.6), resample=Image.BICUBIC, fillcolor=255)
     page = page.filter(ImageFilter.GaussianBlur(0.9))
@@ -78,10 +112,10 @@ def render(text, out, regular, bold, seed=0, size=40):
     return text
 
 
-def photograph(text, out, regular, bold, seed=0, size=40):
+def photograph(text, out, regular, bold, seed=0, size=40, layout="text"):
     """Typeset text and make it look like a phone photo of the page; JPEG at `out`."""
     rng = np.random.default_rng(seed)
-    page = np.asarray(typeset(text, regular, bold, size)).astype(np.float32) / 255
+    page = np.asarray(_page(text, (regular, bold), size, layout)).astype(np.float32) / 255
     h, w = page.shape
     # the page bulges: lines curve near the top and bottom, more towards the spine (left)
     yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)

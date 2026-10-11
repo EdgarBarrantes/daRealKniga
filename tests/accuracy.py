@@ -68,6 +68,10 @@ SOURCES = {
     "PT_Serif-Bold.ttf": Source("https://github.com/google/fonts/raw/main/ofl/ptserif/PT_Serif-Web-Bold.ttf",
                                 "038ba7336bd7ea14f12ad155bed51a4345cac5153275d521dec3ba04021c526e",
                                 "PT_Serif-Bold.ttf"),
+    # PT Mono (ParaType, SIL Open Font License), for the synthetic receipt
+    "PT_Mono-Regular.ttf": Source("https://github.com/google/fonts/raw/main/ofl/ptmono/PTM55FT.ttf",
+                                  "cbe732b3b8fd211fd986ebdfc9b870ddeca4faab0bb5425fc509b37f9b4ac804",
+                                  "PT_Mono-Regular.ttf"),
 }
 
 
@@ -82,6 +86,9 @@ class Sample:
     reference: str = None  # take the reference text from another source with the same page numbering
     min_word_f1: float = 0.0
     min_char_acc: float = 0.0
+    min_num_recall: float = 0.0
+    min_row_acc: float = 0.0   # receipts: rows whose label and value share a .txt line
+    layout: str = "text"       # synthetic pages: "text" or "receipt" (see synthetic.py)
     description: str = ""
 
     @property
@@ -100,6 +107,11 @@ SAMPLES = [
            min_word_f1=0.93, min_char_acc=0.95,
            description="synthetic phone photo of a travel-guide page (curled, in perspective, uneven light): "
                        "Bulgarian with English names and phrases"),
+    Sample("receipt-bg", "synthetic-photo:receipt_bg.txt", [1], "bul+eng", "Phone photo of a receipt, Bulgarian",
+           args=["--text-layout", "rows"], layout="receipt",
+           min_word_f1=0.95, min_char_acc=0.95, min_num_recall=0.98, min_row_acc=0.9,
+           description="synthetic phone photo of a utility-bill receipt: label and value columns, prices, "
+                       "dates, long account numbers, EUR and BGN"),
     Sample("djvu-ru", "podigom.djvu", [40, 41, 42, 100], "rus", "Russian novel, DjVu scan",
            min_word_f1=0.93, min_char_acc=0.97,
            description="DjVu scan mode, Russian prose (Вазов, Под игом, 1970)"),
@@ -156,7 +168,9 @@ def cut(sample, workdir):
         import synthetic
         out = os.path.join(workdir, sample.name + ".jpg")
         make = synthetic.photograph if sample.source.startswith("synthetic-photo:") else synthetic.render
-        make(reference(sample), out, fetch("PT_Serif-Regular.ttf"), fetch("PT_Serif-Bold.ttf"), seed=7)
+        fonts = (fetch("PT_Mono-Regular.ttf"),) * 2 if sample.layout == "receipt" else \
+            (fetch("PT_Serif-Regular.ttf"), fetch("PT_Serif-Bold.ttf"))
+        make(reference(sample), out, *fonts, seed=7, layout=sample.layout)
         return out
     src = fetch(sample.source)
     if src.endswith(".djvu"):
@@ -197,9 +211,28 @@ def words(text, lower=True):
     return re.findall(r"[^\W\d_]+|\d+", t)
 
 
+def numbers(text):
+    """Numbers as printed: amounts, dates, times, account numbers ('51.98', '14.03.2026', '20%')."""
+    return [n.rstrip(".,:") for n in re.findall(r"\d[\d.,:/%-]*", text)]
+
+
+def rows_score(ref_text, hyp_text):
+    """Receipts: share of the reference rows with values (tab-separated) whose label and last
+    value appear together on one line of the output."""
+    hyp = [(words(l), numbers(l)) for l in hyp_text.splitlines()]
+    want = []
+    for line in ref_text.splitlines():
+        cols = [c for c in line.split("\t") if c.strip()]
+        if len(cols) >= 2 and numbers(cols[-1]):
+            want.append((words(cols[0]), numbers(cols[-1])[0]))
+    ok = sum(any(all(w in hw for w in label) and value in hn for hw, hn in hyp) for label, value in want)
+    return ok / max(1, len(want))
+
+
 def score(ref_text, hyp_text):
-    """-> word_f1/recall/precision (word order ignored: robust to column order) and
-    char_acc = 1 - character edit distance / reference length, in reading order."""
+    """-> word_f1/recall/precision (word order ignored: robust to column order),
+    char_acc = 1 - character edit distance / reference length, in reading order, and
+    num_recall: share of the printed numbers read exactly (a wrong digit can't be searched or summed)."""
     r, h = words(ref_text), words(hyp_text)
     common = sum((Counter(r) & Counter(h)).values())
     rec = common / max(1, len(r))
@@ -207,7 +240,10 @@ def score(ref_text, hyp_text):
     f1 = 2 * rec * prec / max(1e-9, rec + prec)
     rs, hs = " ".join(r), " ".join(h)
     char = max(0.0, 1 - Levenshtein.distance(rs, hs) / max(1, len(rs)))
-    return {"words": len(r), "word_recall": rec, "word_precision": prec, "word_f1": f1, "char_acc": char}
+    rn, hn = Counter(numbers(ref_text)), Counter(numbers(hyp_text))
+    num = sum((rn & hn).values()) / max(1, sum(rn.values())) if rn else 1.0
+    return {"words": len(r), "word_recall": rec, "word_precision": prec, "word_f1": f1, "char_acc": char,
+            "num_recall": num}
 
 
 def _align(ref, hyp):
@@ -285,6 +321,8 @@ def run(sample, workdir, baselines=True):
             texts[ext] = open(f, encoding="utf-8").read() if ext == "txt" else \
                 "\n".join(page_texts(f, range(1, len(sample.pages) + 1)))
             outputs[ext] = score(ref, texts[ext])
+    if "\t" in ref and "txt" in outputs:
+        outputs["txt"]["row_acc"] = rows_score(ref, texts["txt"])
     systems = {"darealkniga": outputs["pdf"]}
     found = []
     if baselines:
@@ -336,7 +374,8 @@ def main(argv):
                            "pages": len(s.pages), "synthetic": s.synthetic,
                            "systems": systems, "outputs": outputs, "fixes": found}
         for ext, sc in outputs.items():
-            if sc["word_f1"] < s.min_word_f1 or sc["char_acc"] < s.min_char_acc:
+            if sc["word_f1"] < s.min_word_f1 or sc["char_acc"] < s.min_char_acc or \
+                    sc["num_recall"] < s.min_num_recall or sc.get("row_acc", 1) < s.min_row_acc:
                 failed.append(f"{s.name}/{ext}")
     saved = report.load()
     print("\n" + table(results, saved))
