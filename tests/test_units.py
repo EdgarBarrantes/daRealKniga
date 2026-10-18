@@ -399,3 +399,10 @@ def test_bulgarian_letters_from_a_multilingual_model():
     assert fuse.bulgarian_letters("Днеvна") == "Дневна"
     for kept in ("шофьор", "Гьоте", "EUR/kWh", "Vivacom", "2.92"):
         assert fuse.bulgarian_letters(kept) == kept
+
+
+def test_receipt_unit_before_price():
+    w = lambda t, x: {"t": t, "box": [x, 0, x + 40, 20]}
+    row = receipt.fix_row([w("1", 0), w("5P", 20), w("×", 60), w("1.29=", 80), w("1.29", 160), w("Б", 220)])
+    assert [x["t"] for x in row][:3] == ["1", "БР", "×"]
+    assert [x["t"] for x in receipt.fix_row([w("5P", 0), w("ROAD", 50)])] == ["5P", "ROAD"]

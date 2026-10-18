@@ -142,11 +142,26 @@ _PADDLE = None
 DET_MODELS = {"mobile": "PP-OCRv5_mobile_det", "server": "PP-OCRv5_server_det"}
 
 
-def _paddle_init(rec, threads, det="mobile"):
+# receipt photos: lower detector thresholds than PaddleOCR's (0.3, 0.6) keep faint thermal-print
+# lines the defaults drop (on the receipt bench: addresses, item rows; a few fragments of noise)
+RECEIPT_DET = {"text_det_thresh": 0.2, "text_det_box_thresh": 0.45}
+
+
+def _det_options(defaults=None):
+    """Detector thresholds: the given defaults, overridden for trials by
+    DAREALKNIGA_PADDLE_DET_THRESH (text pixels) and DAREALKNIGA_PADDLE_DET_BOX (whole boxes)."""
+    opts = dict(defaults or {})
+    for env, key in (("DAREALKNIGA_PADDLE_DET_THRESH", "text_det_thresh"), ("DAREALKNIGA_PADDLE_DET_BOX", "text_det_box_thresh")):
+        if os.environ.get(env):
+            opts[key] = float(os.environ[env])
+    return opts
+
+
+def _paddle_init(rec, threads, det="mobile", det_opts=None):
     global _PADDLE
     os.environ.setdefault("PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK", "True")
     from paddleocr import PaddleOCR
-    _PADDLE = PaddleOCR(text_detection_model_name=DET_MODELS[det], text_recognition_model_name=rec,
+    _PADDLE = PaddleOCR(**(det_opts or {}), text_detection_model_name=DET_MODELS[det], text_recognition_model_name=rec,
                         use_doc_orientation_classify=False, use_doc_unwarping=False,
                         use_textline_orientation=False, text_det_limit_side_len=3400,
                         text_det_limit_type="max", cpu_threads=threads)
@@ -160,11 +175,11 @@ def _paddle_one(job):
                      "polys": [[[int(x), int(y)] for x, y in p] for p in r["rec_polys"]]})
 
 
-def run_paddle(jobs, rec, workers, threads_total, det="mobile"):
+def run_paddle(jobs, rec, workers, threads_total, det="mobile", det_opts=None):
     """jobs: [(image_path, out_json)]."""
     todo = [j for j in jobs if not os.path.exists(j[1])]
     if not todo:
         return
     workers = max(1, min(workers, len(todo)))
     pool_map(_paddle_one, todo, workers, f"paddleocr ({rec}, {det} detector)", initializer=_paddle_init,
-             initargs=(rec, max(1, threads_total // workers), det), spawn=True)
+             initargs=(rec, max(1, threads_total // workers), det, det_opts), spawn=True)

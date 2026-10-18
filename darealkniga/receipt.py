@@ -5,7 +5,8 @@ Receipts repeat a small vocabulary in large or condensed print (ОБЩА СУМ�
 or glues. These fixes are deliberately narrow:
 - a word one letter away from a receipt term (and not itself a known word) becomes the term;
 - a decimal split by a space in wide print ("28. 52") is joined;
-- the VAT group letter after a price, read as a digit or a Latin letter ("1.65 6"), becomes Б.
+- the VAT group letter after a price, read as a digit or a Latin letter ("1.65 6"), becomes Б;
+- the unit БР before "× price", read as 5P or 6P, becomes БР.
 Digits inside numbers are never changed.
 """
 import re
@@ -70,8 +71,11 @@ def fix_word(w):
 def fix_row(words):
     """words: one row, left to right ({"t", "box"}). Returns the fixed row (words may merge)."""
     out = []
-    for w in words:
+    for i, w in enumerate(words):
         t = w["t"]
+        nxt = words[i + 1]["t"] if i + 1 < len(words) else ""
+        if re.fullmatch(r"[56БбB]P|БP|6Р|5Р", t) and nxt in ("x", "×", "х", "X"):
+            t = "БР"  # the unit (бройки) before "× price"
         if out and re.fullmatch(r"\d+[.,]", out[-1]["t"]) and re.fullmatch(r"\d{2}", t):
             prev = out[-1]  # wide print: "28." + "52"
             prev["t"] += t

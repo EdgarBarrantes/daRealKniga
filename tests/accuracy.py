@@ -88,7 +88,7 @@ class Sample:
     min_char_acc: float = 0.0
     min_num_recall: float = 0.0
     min_row_acc: float = 0.0   # receipts: rows whose label and value share a .txt line
-    layout: str = "text"       # synthetic pages: "text" or "receipt" (see synthetic.py)
+    layout: str = "text"       # synthetic pages: "text", "receipt" or "till" (see synthetic.py)
     description: str = ""
 
     @property
@@ -112,6 +112,11 @@ SAMPLES = [
            min_word_f1=0.95, min_char_acc=0.95, min_num_recall=0.98, min_row_acc=0.9,
            description="synthetic phone photo of a utility-bill receipt: label and value columns, prices, "
                        "dates, long account numbers, EUR and BGN"),
+    Sample("till-bg", "synthetic-photo:till_bg.txt", [1], "bul+eng", "Phone photo of a till receipt, Bulgarian",
+           args=["--profile", "receipt"], layout="till",
+           min_word_f1=0.93, min_char_acc=0.95, min_num_recall=0.98, min_row_acc=0.9,
+           description="synthetic phone photo of a thermal till receipt (faint dotty print, double-height "
+                       "total, crumpled and tilted): items with quantity x price, card payment, fiscal numbers"),
     Sample("djvu-ru", "podigom.djvu", [40, 41, 42, 100], "rus", "Russian novel, DjVu scan",
            min_word_f1=0.93, min_char_acc=0.97,
            description="DjVu scan mode, Russian prose (Вазов, Под игом, 1970)"),
@@ -168,7 +173,9 @@ def cut(sample, workdir):
         import synthetic
         out = os.path.join(workdir, sample.name + ".jpg")
         make = synthetic.photograph if sample.source.startswith("synthetic-photo:") else synthetic.render
-        fonts = (fetch("PT_Mono-Regular.ttf"),) * 2 if sample.layout == "receipt" else \
+        if sample.layout == "till":
+            make = synthetic.photograph_till
+        fonts = (fetch("PT_Mono-Regular.ttf"),) * 2 if sample.layout in ("receipt", "till") else \
             (fetch("PT_Serif-Regular.ttf"), fetch("PT_Serif-Bold.ttf"))
         make(reference(sample), out, *fonts, seed=7, layout=sample.layout)
         return out

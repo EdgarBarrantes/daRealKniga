@@ -16,9 +16,10 @@ def paddle_json(path):
 
 
 def build_page(n, W, H, tsv, scale, langs, paddle=None):
-    if tsv is None:  # PaddleOCR only (receipt profile)
-        return {"page": n, "W": W, "H": H, "lines": fuse.paddle_page(paddle_json(paddle), scale),
-                "profile": "receipt"}
+    if tsv is None:  # PaddleOCR only (receipt profile): the printed rows, fixed, are the page's lines,
+        # so the PDF text layer reads in the same order as the .txt
+        lines = [receipt.fix_row(r) for r in rows(fuse.paddle_page(paddle_json(paddle), scale))]
+        return {"page": n, "W": W, "H": H, "lines": lines, "profile": "receipt"}
     tl = fuse.read_tess(tsv, scale)
     if paddle is not None:
         lines = fuse.fuse_page(tl, fuse.paddle_words(paddle_json(paddle), scale))

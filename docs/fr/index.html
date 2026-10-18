@@ -57,13 +57,14 @@
 <h2 id="accuracy">Meilleur qu’un OCR classique</h2>
 <p>Chaque échantillon est lu de trois façons à partir des mêmes images de pages : par Tesseract seul, par PaddleOCR seul et par daRealKniga, qui nettoie les pages, combine les deux moteurs mot par mot et corrige leurs erreurs.</p>
 <!-- benchmark:start -->
-<p class="lead">En moyenne, daRealKniga lit mal <strong>2,4 fois moins de mots</strong> que Tesseract seul et <strong>3,4 fois moins</strong> que PaddleOCR seul.</p>
+<p class="lead">En moyenne, daRealKniga lit mal <strong>5,2 fois moins de mots</strong> que Tesseract seul et <strong>3,5 fois moins</strong> que PaddleOCR seul.</p>
 <img class="chart" src="../benchmark-fr.svg" alt="Part des mots mal lus par Tesseract seul, PaddleOCR seul et daRealKniga, par échantillon (moins, c’est mieux)">
 <div class="scroll"><table class="results"><thead><tr><th>Échantillon</th><th>Tesseract seul</th><th>PaddleOCR seul</th><th>daRealKniga</th></tr></thead><tbody>
 <tr><td>Page de manuel : bulgare + anglais<small>scan synthétique d’une page de manuel de langue : du bulgare avec des mots et des phrases en anglais</small></td><td class="num">97,9 %</td><td class="num">86,2 %</td><td class="num best">99,8 %</td></tr>
 <tr><td>Page technique : russe + anglais<small>scan synthétique d’une page de mode d’emploi : du russe avec des termes, des commandes et des noms en anglais</small></td><td class="num">98,3 %</td><td class="num">84,7 %</td><td class="num best">99,4 %</td></tr>
 <tr><td>Photo au téléphone : bulgare + anglais<small>photo synthétique d’une page de guide de voyage (courbée, en perspective, éclairage inégal) : du bulgare avec des noms et des expressions en anglais</small></td><td class="num">89,4 %</td><td class="num">82,6 %</td><td class="num best">98,1 %</td></tr>
 <tr><td>Photo d’un reçu au téléphone, bulgare<small>photo synthétique d’un reçu de facture d’électricité : colonnes de libellés et de montants, prix, dates, longs numéros de compte, EUR et BGN</small></td><td class="num">89,3 %</td><td class="num">93,7 %</td><td class="num best">97,6 %</td></tr>
+<tr><td>Phone photo of a till receipt, Bulgarian<small>synthetic phone photo of a thermal till receipt (faint dotty print, double-height total, crumpled and tilted): items with quantity x price, card payment, fiscal numbers</small></td><td class="num">7,7 %</td><td class="num">83,1 %</td><td class="num best">96,3 %</td></tr>
 <tr><td>Roman russe, scan DjVu<small>mode scan DjVu, prose russe (Vazov, « Sous le joug », 1970)</small></td><td class="num">88,0 %</td><td class="num">90,9 %</td><td class="num best">95,6 %</td></tr>
 <tr><td>Roman russe, scan PDF<small>PDF de la même édition (scans à plat recadrés) ; référence : la couche texte du DjVu</small></td><td class="num">88,1 %</td><td class="num">88,4 %</td><td class="num best">95,4 %</td></tr>
 <tr><td>Poèmes bulgares, PDF basse résolution<small>poésie et prose bulgares, doubles pages à 133 dpi (Vazov, Œuvres, t. 4, 1974) ; la référence contient elle-même beaucoup d’erreurs d’OCR</small></td><td class="num">87,3 %</td><td class="num">87,2 %</td><td class="num best">88,2 %</td></tr>
@@ -82,7 +83,7 @@
 <tr><td>or</td><td><b class="wrong">ог</b></td><td>or ✓</td><td>or ✓</td></tr>
 <tr><td>да</td><td><b class="wrong">na</b></td><td>да ✓</td><td>да ✓</td></tr>
 </tbody></table></div><p class="note">Les lettres <b class="wrong">surlignées</b> viennent du mauvais alphabet : identiques à l’écran, elles rendent le mot introuvable.</p>
-<p class="note">Mesuré le 2026-10-11 avec daRealKniga 0.3.0, Tesseract 5.3.4 et PaddleOCR 3.7.0. Les trois lisent les mêmes images de pages avec les mêmes modèles d’OCR.</p>
+<p class="note">Mesuré le 2026-10-19 avec daRealKniga 0.3.0, Tesseract 5.3.4 et PaddleOCR 3.7.0. Les trois lisent les mêmes images de pages avec les mêmes modèles d’OCR.</p>
 <!-- benchmark:end -->
 <p class="note">Les échantillons, la notation et la façon de refaire le test vous-même sont décrits dans le <a href="https://github.com/EdgarBarrantes/daRealKniga#tests">README</a> (en anglais).</p>
 

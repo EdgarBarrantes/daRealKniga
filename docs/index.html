@@ -57,13 +57,14 @@
 <h2 id="accuracy">Better than plain OCR</h2>
 <p>Every sample is read three ways from the same page images: by Tesseract alone, by PaddleOCR alone, and by daRealKniga, which cleans the pages up, combines both engines word by word and corrects what they get wrong.</p>
 <!-- benchmark:start -->
-<p class="lead">daRealKniga misreads on average <strong>2.4× fewer words</strong> than Tesseract alone and <strong>3.4× fewer words</strong> than PaddleOCR alone.</p>
+<p class="lead">daRealKniga misreads on average <strong>5.2× fewer words</strong> than Tesseract alone and <strong>3.5× fewer words</strong> than PaddleOCR alone.</p>
 <img class="chart" src="benchmark.svg" alt="Words misread by Tesseract alone, PaddleOCR alone and daRealKniga, per sample (lower is better)">
 <div class="scroll"><table class="results"><thead><tr><th>Sample</th><th>Tesseract alone</th><th>PaddleOCR alone</th><th>daRealKniga</th></tr></thead><tbody>
 <tr><td>Bulgarian + English textbook page<small>synthetic scan of a language-textbook page: Bulgarian with English words and sentences</small></td><td class="num">97.9%</td><td class="num">86.2%</td><td class="num best">99.8%</td></tr>
 <tr><td>Russian + English technical page<small>synthetic scan of a manual page: Russian with English terms, commands and names</small></td><td class="num">98.3%</td><td class="num">84.7%</td><td class="num best">99.4%</td></tr>
 <tr><td>Phone photo, Bulgarian + English<small>synthetic phone photo of a travel-guide page (curled, in perspective, uneven light): Bulgarian with English names and phrases</small></td><td class="num">89.4%</td><td class="num">82.6%</td><td class="num best">98.1%</td></tr>
 <tr><td>Phone photo of a receipt, Bulgarian<small>synthetic phone photo of a utility-bill receipt: label and value columns, prices, dates, long account numbers, EUR and BGN</small></td><td class="num">89.3%</td><td class="num">93.7%</td><td class="num best">97.6%</td></tr>
+<tr><td>Phone photo of a till receipt, Bulgarian<small>synthetic phone photo of a thermal till receipt (faint dotty print, double-height total, crumpled and tilted): items with quantity x price, card payment, fiscal numbers</small></td><td class="num">7.7%</td><td class="num">83.1%</td><td class="num best">96.3%</td></tr>
 <tr><td>Russian novel, DjVu scan<small>DjVu scan mode, Russian prose (Вазов, Под игом, 1970)</small></td><td class="num">88.0%</td><td class="num">90.9%</td><td class="num best">95.6%</td></tr>
 <tr><td>Russian novel, PDF scan<small>PDF of the same edition (cropped flat scans); reference = the DjVu text layer</small></td><td class="num">88.1%</td><td class="num">88.4%</td><td class="num best">95.4%</td></tr>
 <tr><td>Bulgarian poems, low-res PDF<small>Bulgarian poetry and prose, 133 dpi two-page spreads (Вазов, Събрани съчинения т. 4, 1974); the reference has many OCR errors of its own</small></td><td class="num">87.3%</td><td class="num">87.2%</td><td class="num best">88.2%</td></tr>
@@ -82,7 +83,7 @@
 <tr><td>or</td><td><b class="wrong">ог</b></td><td>or ✓</td><td>or ✓</td></tr>
 <tr><td>да</td><td><b class="wrong">na</b></td><td>да ✓</td><td>да ✓</td></tr>
 </tbody></table></div><p class="note"><b class="wrong">Highlighted</b> letters come from the wrong alphabet: they look identical on screen, but the word can't be searched.</p>
-<p class="note">Measured 2026-10-11 with daRealKniga 0.3.0, Tesseract 5.3.4 and PaddleOCR 3.7.0. All three read the same page images with the same OCR models.</p>
+<p class="note">Measured 2026-10-19 with daRealKniga 0.3.0, Tesseract 5.3.4 and PaddleOCR 3.7.0. All three read the same page images with the same OCR models.</p>
 <!-- benchmark:end -->
 <p class="note">The samples, the scoring and how to rerun it yourself are described in the <a href="https://github.com/EdgarBarrantes/daRealKniga#tests">README</a>.</p>
 

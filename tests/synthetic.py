@@ -10,6 +10,8 @@ typeset in PT Serif (a common Cyrillic book face) at 300 dpi. Two looks are prod
 The first line of each text file is set as a bold heading; every other line is a paragraph.
 Receipts (layout "receipt") are set in a monospaced face instead, one printed row per line,
 with tab-separated columns: the label on the left, then its values (see typeset_receipt).
+Till receipts (layout "till") are narrow thermal-paper strips: faint, dotty print, the total
+line in double height, crumpled and tilted on a table (see typeset_till and photograph_till).
 """
 import random
 
@@ -91,6 +93,80 @@ def typeset_receipt(text, mono, size=30):
         if y > H - MARGIN:
             raise ValueError("text does not fit on the page")
     return page
+
+
+TILL_W = 900   # 3 in at 300 dpi: 80 mm thermal paper
+
+
+def typeset_till(text, mono, size=30):
+    """Till receipt strip: one row per line; the label left, the last column right-aligned, a
+    middle column (quantity x price) right-aligned before it. The total line (ОБЩА СУМА) is
+    printed in double height and bold, as tills do."""
+    lines = text.strip("\n").split("\n")
+    font = ImageFont.truetype(mono, size)
+    big = ImageFont.truetype(mono, int(size * 1.9))
+    lead = int(size * 1.5)
+    h = 120 + sum(2 * lead if l.startswith("ОБЩА СУМА") else lead for l in lines) + 120
+    page = Image.new("L", (TILL_W, h), 255)
+    d = ImageDraw.Draw(page)
+    left, right, y = 40, TILL_W - 40, 120
+    for line in lines:
+        cols = line.split("\t")
+        f = big if line.startswith("ОБЩА СУМА") else font
+        if f is big:  # bold: the same text twice, a pixel apart
+            for dx in (0, 2):
+                d.text((left + dx, y), cols[0], font=f, fill=0)
+                if len(cols) > 1:
+                    d.text((right - d.textlength(cols[-1], font=f) + dx, y), cols[-1], font=f, fill=0)
+            y += 2 * lead
+            continue
+        d.text((left, y), cols[0], font=f, fill=0)
+        if len(cols) == 3:  # name, quantity x price, value: the middle one ends before the value
+            d.text((right - d.textlength(cols[2], font=f) - 30 - d.textlength(cols[1], font=f), y),
+                   cols[1], font=f, fill=0)
+            d.text((right - d.textlength(cols[2], font=f), y), cols[2], font=f, fill=0)
+        elif len(cols) == 2:
+            d.text((right - d.textlength(cols[1], font=f), y), cols[1], font=f, fill=0)
+        y += lead
+    return page
+
+
+def photograph_till(text, out, mono, _bold=None, seed=0, **_):
+    """A till receipt as phones photograph them: thermal print (faint grey dots, fading to one
+    side), crumpled, tilted by a few degrees, lying on a table under uneven light."""
+    rng = np.random.default_rng(seed)
+    page = np.asarray(typeset_till(text, mono)).astype(np.float32) / 255
+    h, w = page.shape
+    # thermal print: ink is grey, not black, made of dots, and fades towards the right
+    ink = 1 - page
+    dots = (rng.random((h, w)) > 0.18).astype(np.float32)
+    fade = 0.55 + 0.25 * (1 - np.linspace(0, 1, w))[None, :]
+    page = 1 - ink * dots * fade
+    page = cv2.GaussianBlur(page, (0, 0), 0.8)
+    # crumples: a smooth random displacement, and creases as faint shading
+    def smooth(scale, amp):
+        n = rng.normal(0, 1, (h // scale + 2, w // scale + 2)).astype(np.float32)
+        return cv2.resize(n, (w, h), interpolation=cv2.INTER_CUBIC) * amp
+    dx, dy = smooth(120, 6), smooth(120, 6)
+    yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+    page = cv2.remap(page, xx + dx, yy + dy, cv2.INTER_LINEAR, borderValue=1.0)
+    shade = 1 - 0.04 * np.abs(smooth(90, 1.0))
+    paper = np.stack([page * 0.96, page * 0.94, page * 0.90], -1) * 255 * shade[..., None]
+    # tilted, on a table
+    CW, CH = w + 500, h + 400
+    table = np.ones((CH, CW, 3), np.float32) * np.array([70, 62, 58], np.float32)
+    table += rng.normal(0, 8, (CH, CW, 1)).astype(np.float32)
+    M = cv2.getRotationMatrix2D((w / 2, h / 2), 2.5, 1.0)
+    M[:, 2] += [250, 200]
+    warped = cv2.warpAffine(paper, M, (CW, CH), flags=cv2.INTER_LINEAR, borderValue=0)
+    mask = cv2.warpAffine(np.ones((h, w), np.float32), M, (CW, CH)) > 0.5
+    img = np.where(mask[..., None], warped, table)
+    gy, gx = np.mgrid[0:CH, 0:CW].astype(np.float32)
+    img = img * (1.05 - 0.3 * (gx / CW * 0.5 + gy / CH * 0.5))[..., None]
+    img = cv2.GaussianBlur(img, (0, 0), 1.0) + rng.normal(0, 4, img.shape).astype(np.float32)
+    img = cv2.resize(np.clip(img, 0, 255).astype(np.uint8), (CW * 2 // 3, CH * 2 // 3), interpolation=cv2.INTER_AREA)
+    Image.fromarray(img).save(out, "JPEG", quality=85)
+    return text
 
 
 def _page(text, fonts, size, layout):
