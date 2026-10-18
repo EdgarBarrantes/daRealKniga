@@ -21,7 +21,7 @@ TERMS = [
 SHORT = {"ЕИК": ("ЕНК", "EИK"), "УНП": ("УНИИ", "УНII", "УНIІ", "УHП"), "ДДС": (), "БОН": (), "ЗДДС": ("ЗААС", "3ДДС", "ЗОДС")}
 PRICE = re.compile(r"^-?\d+[.,]\d{2}$")
 VAT_MISREAD = {"6", "5", "b", "б", "Б"}
-FOLD_MORE = str.maketrans("36UN", "ЗБИП")  # upper-case look-alikes L2C leaves (KAPTU, YHN)
+FOLD_MORE = str.maketrans("36UNW", "ЗБИПШ")  # upper-case look-alikes L2C leaves (KAPTU, YHN, ОЕWА)
 VOWELS = set("АЕИОУЪЮЯ")
 
 

@@ -359,7 +359,7 @@ def test_receipt_terms_fixed_by_one_letter():
     """Receipt profile: the few terms every receipt prints, misread by one letter, are put right;
     real words, other forms of a term and numbers are left alone."""
     fixes = {"ОЕЩА": "ОБЩА", "УБША": "ОБЩА", "ЕБРО": "ЕВРО", "CYMA:": "СУМА:", "#CYMA/AMT": "#СУМА/AMT",
-             "KAPTU": "КАРТИ", "МАГА3ИН": "МАГАЗИН", "Олератор": "Оператор", "3AAC": "ЗДДС",
+             "KAPTU": "КАРТИ", "ОЕWА": "ОБЩА", "МАГА3ИН": "МАГАЗИН", "Олератор": "Оператор", "3AAC": "ЗДДС",
              "YHII:": "УНП:", "EHK:": "ЕИК:"}
     for wrong, right in fixes.items():
         assert receipt.fix_word(wrong) == right, wrong
