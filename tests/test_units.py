@@ -406,3 +406,12 @@ def test_receipt_unit_before_price():
     row = receipt.fix_row([w("1", 0), w("5P", 20), w("×", 60), w("1.29=", 80), w("1.29", 160), w("Б", 220)])
     assert [x["t"] for x in row][:3] == ["1", "БР", "×"]
     assert [x["t"] for x in receipt.fix_row([w("5P", 0), w("ROAD", 50)])] == ["5P", "ROAD"]
+
+
+def test_profile_guessed_from_page_shape(tmp_path):
+    from darealkniga import pipeline
+    strip, page = tmp_path / "strip.png", tmp_path / "page.png"
+    Image.new("L", (400, 1200), 255).save(strip)   # 3:1, a till receipt
+    Image.new("L", (1240, 1754), 255).save(page)   # A4
+    assert pipeline.guess_profile(str(strip)) == "receipt"
+    assert pipeline.guess_profile(str(page)) == "book"

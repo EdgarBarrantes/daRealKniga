@@ -53,11 +53,12 @@ def build_parser():
     m.add_argument("--text-layout", choices=["blocks", "rows"], default="blocks",
                    help=".txt line order: blocks = reading order (books); rows = one line per printed "
                         "row, so labels stay next to their values (receipts, forms, tables) (default: blocks)")
-    m.add_argument("--profile", choices=["book", "receipt"], default="book",
+    m.add_argument("--profile", choices=["book", "receipt", "auto"], default="book",
                    help="receipt: phone photos of receipts and payment slips. The photo is read as it is "
                         "by PaddleOCR (flattening and clean-up, made for book pages, break thin thermal "
                         "print and crop receipt edges), look-alike letters are fixed and the text comes "
-                        "out one line per printed row (default: book)")
+                        "out one line per printed row. auto: receipt when the photos are long strips "
+                        "(at least 1.7 times taller than wide), book otherwise (default: book)")
     m.add_argument("--pages", help="only process these pages, e.g. 1-20,35 (for trials)")
     m.add_argument("--page-size", default="auto",
                    help="output page size in inches, e.g. 5.5x8.5 (default: auto)")
@@ -162,6 +163,10 @@ def main(argv=None):
     bad = args.formats - {"pdf", "djvu", "txt"}
     if bad:
         sys.exit(f"unknown format(s): {', '.join(bad)}")
+    if args.profile == "auto" and not is_djvu:
+        from . import pipeline
+        args.profile = pipeline.guess_profile(args.input)
+        print(f"[darealkniga] profile: {args.profile} (from the page shape)", file=sys.stderr)
     if args.profile == "receipt":
         args.text_layout = "rows"
     if args.tesseract == "auto":

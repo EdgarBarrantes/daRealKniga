@@ -222,6 +222,23 @@ def _photo_layers(job):
     return layers
 
 
+RECEIPT_RATIO = 1.7  # height / width: receipt strips 1.9-4.8 on the receipt bench, A4 pages 1.41
+
+
+def guess_profile(src, sample=5):
+    """'receipt' when the first pages are long strips, like till receipts and card slips; else 'book'."""
+    import tempfile
+    n = min(sample, sources.count(src))
+    if not n:
+        return "book"
+    ratios = []
+    with tempfile.TemporaryDirectory() as d:
+        for k in range(1, n + 1):
+            with Image.open(sources.extract(src, k, os.path.join(d, f"{k:04d}"))) as im:
+                ratios.append(im.height / im.width)
+    return "receipt" if statistics.median(ratios) >= RECEIPT_RATIO else "book"
+
+
 def parse_size(s):
     w, h = (float(x) for x in s.lower().replace("in", "").split("x"))
     return w, h

@@ -313,7 +313,7 @@ Main options (`darealkniga make --help` lists them all):
 | `--color auto/never/always` | photo mode: `auto` keeps colourful pages (covers) in colour and makes the rest greyscale |
 | `--unwarp auto/always/never` | photo mode: flatten with UVDoc. `auto` flattens only pages that look like photos (background or shadows around the page); cropped flat scans are left untouched |
 | `--formats pdf,djvu,txt` | which outputs to write |
-| `--profile book/receipt` | `receipt`: phone photos of till receipts and card slips. The photo is read as it is by PaddleOCR (flattening and clean-up, made for book pages, crop receipt edges and break thin thermal print), look-alike letters and common receipt terms are fixed, and the text comes out one line per printed row |
+| `--profile book/receipt/auto` | `receipt`: phone photos of till receipts and card slips. The photo is read as it is by PaddleOCR (flattening and clean-up, made for book pages, crop receipt edges and break thin thermal print), look-alike letters and common receipt terms are fixed, and the text comes out one line per printed row. `auto` picks `receipt` for long strips of paper (at least 1.7 times taller than wide) and `book` otherwise |
 | `--text-layout blocks/rows` | `.txt` line order. `blocks` follows the reading order (books); `rows` writes one line per printed row, so each label stays next to its value (receipts, bills, forms, tables) |
 | `--pages 1-20,35` | process only some pages |
 | `-j, --jobs` | parallelism (default: all CPUs) |
