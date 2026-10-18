@@ -77,10 +77,13 @@ def _ocr(cfg, ws, lg, items, ocr_settings):
                           ocr.tessdata_dir(cfg.tessdata), jobs, cfg.tesseract)
     padd = {}
     if engine in ("fused", "paddle"):
-        pdir = ws.stage("paddle", dict(ocr_settings, rec=lg.paddle_rec))
+        # the small detector; DAREALKNIGA_PADDLE_DET=server tries the larger one (on the receipt
+        # bench: 3x slower, no more facts, different lines missed)
+        det = os.environ.get("DAREALKNIGA_PADDLE_DET") or "mobile"
+        pdir = ws.stage("paddle", dict(ocr_settings, rec=lg.paddle_rec, det=det))
         padd = {n: os.path.join(pdir, f"{n:04d}.json") for n, *_ in items}
         ocr.run_paddle([(img, padd[n]) for n, img, *_ in items], lg.paddle_rec,
-                       cfg.paddle_workers or max(1, jobs // 6), jobs)
+                       cfg.paddle_workers or max(1, jobs // 6), jobs, det)
     fuse.configure(lg)
     return [textlayer.build_page(n, W, H, tess[n] and tess[n] + ".tsv", scale, lg, padd.get(n))
             for n, img, dpi, W, H, scale in items]

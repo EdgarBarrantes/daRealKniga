@@ -360,7 +360,7 @@ def test_receipt_terms_fixed_by_one_letter():
     real words, other forms of a term and numbers are left alone."""
     fixes = {"ОЕЩА": "ОБЩА", "УБША": "ОБЩА", "ЕБРО": "ЕВРО", "CYMA:": "СУМА:", "#CYMA/AMT": "#СУМА/AMT",
              "KAPTU": "КАРТИ", "ОЕWА": "ОБЩА", "МАГА3ИН": "МАГАЗИН", "Олератор": "Оператор", "3AAC": "ЗДДС",
-             "YHII:": "УНП:", "EHK:": "ЕИК:"}
+             "YHII:": "УНП:", "YHP:": "УНП:", "EHK:": "ЕИК:", "ENK:": "ЕИК:", "EMK:": "ЕИК:", "3ADC": "ЗДДС"}
     for wrong, right in fixes.items():
         assert receipt.fix_word(wrong) == right, wrong
     for kept in ("разписки:", "КАРТИ", "Шумен", "бихте", "ПЕПСИ", "2.92=", "0.218", "BG127585839"):

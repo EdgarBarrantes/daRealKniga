@@ -18,7 +18,8 @@ TERMS = [
     "МЕЖДИННА", "ПОКУПКА", "АРТИКУЛ", "АРТИКУЛА", "ОТСТЪПКА", "РЕСТО", "БРОЙ", "БАНКА", "ОПЕРАТОР",
     "КАСИЕР", "ПЛАЩАНЕ", "РАЗПИСКА", "ПОДПИС", "МАГАЗИН", "СТОКИ", "ХРАНИТЕЛНИ", "БЛАГОДАРИМ",
 ]
-SHORT = {"ЕИК": ("ЕНК", "EИK"), "УНП": ("УНИИ", "УНII", "УНIІ", "УHП"), "ДДС": (), "БОН": (), "ЗДДС": ("ЗААС", "3ДДС", "ЗОДС")}
+# short terms by pattern on the folded word: EMK, ENK, ЕHK for ЕИК; YHII, YHP for УНП; 3AAC, 3ADC for ЗДДС
+SHORT = {"ЕИК": r"Е[ИНПМI]К", "УНП": r"УН(П|Р|II|IІ|ИИ)", "ЗДДС": r"З[ДАОD0]{2}С"}
 PRICE = re.compile(r"^-?\d+[.,]\d{2}$")
 VAT_MISREAD = {"6", "5", "b", "б", "Б"}
 FOLD_MORE = str.maketrans("36UNW", "ЗБИПШ")  # upper-case look-alikes L2C leaves (KAPTU, YHN, ОЕWА)
@@ -42,8 +43,8 @@ def _fix_core(core):
     if len(core) < 3 or not re.search(r"[^\W\d_]", core) or re.search(r"[0-24-57-9]", core):
         return core
     folded = _fold(core)
-    for term, variants in SHORT.items():
-        if folded == term or folded in variants or core.upper() in variants:
+    for term, pattern in SHORT.items():
+        if re.fullmatch(pattern, folded):
             return _cased(term, core)
     if len(core) < 4 or fuse.known(core):
         return core
