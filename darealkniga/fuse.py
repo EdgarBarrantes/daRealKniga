@@ -384,6 +384,20 @@ def _slanted_words(txt, sc, poly, scale):
     return out
 
 
+def bulgarian_letters(w):
+    """PaddleOCR's Cyrillic model reads several languages and writes letters Bulgarian spelling
+    rules out: ь only ever stands before о (ъ otherwise: 'Достьп' -> 'Достъп'), ы does not exist
+    (it is ъ: 'ТРЫНЧЕВ'), and a Latin v inside a Cyrillic word is в ('Днеvна')."""
+    if not CYR.search(w):
+        return w
+    w = re.sub(r"ь(?![оО])", "ъ", w)
+    w = re.sub(r"Ь(?![оО])", "Ъ", w)
+    w = w.replace("ы", "ъ").replace("Ы", "Ъ")
+    if script(w) in ("cyr", "mix"):
+        w = w.replace("v", "в").replace("V", "В")
+    return w
+
+
 def paddle_page(pj, scale):
     """PaddleOCR alone (receipt profile): each of its lines is a line, look-alikes fixed as for
     Tesseract-only pages. Digits are never changed."""
@@ -393,6 +407,8 @@ def paddle_page(pj, scale):
         words = _slanted_words(txt, sc, poly, scale) if poly and len(poly) == 4 else _line_words(txt, sc, box, scale)
         for w in words:
             w["conf"] = 100 * w["score"]
+            if LEX["cyr"] == "bg":
+                w["t"] = bulgarian_letters(w["t"])
         if words:
             lines.append(words)
     return tess_only_page(lines, normalize=True)

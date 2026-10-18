@@ -388,3 +388,14 @@ def test_paddle_page_words_follow_slanted_lines():
                     [[971, 966], [1155, 975], [1153, 1024], [969, 1017]]]}
     rows = textlayer.rows(fuse.paddle_page(pj, 1.0))
     assert [[x["t"] for x in r] for r in rows] == [["ОБЩА", "СУМА", "ЕВРО", "6.22"], ["ДЕБ.КАРТА"]]
+
+
+def test_bulgarian_letters_from_a_multilingual_model():
+    """ь only before о, no ы, no Latin v inside Cyrillic words: Bulgarian spelling settles what
+    PaddleOCR's multi-language Cyrillic model writes."""
+    assert fuse.bulgarian_letters("Достьп") == "Достъп"
+    assert fuse.bulgarian_letters("Даньчна") == "Данъчна"
+    assert fuse.bulgarian_letters("ТРЫНЧЕВ") == "ТРЪНЧЕВ"
+    assert fuse.bulgarian_letters("Днеvна") == "Дневна"
+    for kept in ("шофьор", "Гьоте", "EUR/kWh", "Vivacom", "2.92"):
+        assert fuse.bulgarian_letters(kept) == kept
