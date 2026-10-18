@@ -292,6 +292,9 @@ darealkniga make book.djvu --pages 1-20 -o /tmp/trial
 
 # a receipt or bill: one .txt line per printed row, labels next to their amounts
 darealkniga make receipt.jpg --lang bul+eng --text-layout rows
+
+# a phone photo of a till receipt or card slip (thermal paper): read as photographed
+darealkniga make receipt.jpg --lang bul+eng --profile receipt
 ```
 
 Outputs go next to the input (or to `-o FOLDER`) as `<name> (OCR).pdf/.djvu/.txt`.
@@ -309,6 +312,7 @@ Main options (`darealkniga make --help` lists them all):
 | `--color auto/never/always` | photo mode: `auto` keeps colourful pages (covers) in colour and makes the rest greyscale |
 | `--unwarp auto/always/never` | photo mode: flatten with UVDoc. `auto` flattens only pages that look like photos (background or shadows around the page); cropped flat scans are left untouched |
 | `--formats pdf,djvu,txt` | which outputs to write |
+| `--profile book/receipt` | `receipt`: phone photos of till receipts and card slips. The photo is read as it is by PaddleOCR (flattening and clean-up, made for book pages, crop receipt edges and break thin thermal print), look-alike letters and common receipt terms are fixed, and the text comes out one line per printed row |
 | `--text-layout blocks/rows` | `.txt` line order. `blocks` follows the reading order (books); `rows` writes one line per printed row, so each label stays next to its value (receipts, bills, forms, tables) |
 | `--pages 1-20,35` | process only some pages |
 | `-j, --jobs` | parallelism (default: all CPUs) |
@@ -346,6 +350,14 @@ Main options (`darealkniga make --help` lists them all):
      values as separate blocks. Rows chain Tesseract's line pieces left to right, each joining
      the row that continues at its height, following the page's tilt as measured on the
      pieces themselves.
+   - **Receipt profile** (`--profile receipt`). Till receipts are thin thermal print on curled,
+     crumpled paper, in condensed and double-size fonts. Flattening crops their edges and
+     whitening breaks the faint dots, so the photo goes to PaddleOCR untouched. Each word's
+     box follows its line's slant (PaddleOCR's polygon), so rows hold on tilted photos; then
+     the look-alike fixes run, and a few narrow receipt fixes: terms every receipt prints
+     (`ОЕЩА` -> `ОБЩА`, `CYMA` -> `СУМА`) one letter off, decimals split by wide print
+     (`28. 52`), and the VAT group letter after a price read as a digit (`1.65 6` -> `1.65 Б`).
+     Digits are never changed.
 5. **DjVu output.** The original file gets a hidden text layer with page, line and word
    boxes, and per-page dpi values that make every page display at the same width. The page
    images are not re-encoded.

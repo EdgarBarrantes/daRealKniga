@@ -153,7 +153,8 @@ def _paddle_one(job):
     img, out = job
     r = _PADDLE.predict(imread(img))[0].json["res"]   # the image, not its path (see unwarp._one)
     write_json(out, {"texts": r["rec_texts"], "scores": [float(s) for s in r["rec_scores"]],
-                     "boxes": [list(map(int, b)) for b in r["rec_boxes"]]})
+                     "boxes": [list(map(int, b)) for b in r["rec_boxes"]],
+                     "polys": [[[int(x), int(y)] for x, y in p] for p in r["rec_polys"]]})
 
 
 def run_paddle(jobs, rec, workers, threads_total):

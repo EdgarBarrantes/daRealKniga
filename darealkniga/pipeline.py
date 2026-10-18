@@ -69,18 +69,20 @@ def _ocr(cfg, ws, lg, items, ocr_settings):
     engine = _engine(cfg, lg)
     log(f"OCR engine: {engine} ({lg.tess})")
     jobs = threads_jobs(cfg)
-    tdir = ws.stage("tess", dict(ocr_settings, langs=lg.tess))
-    tess = {n: os.path.join(tdir, f"{n:04d}") for n, *_ in items}
-    ocr.run_tesseract([(img, tess[n], dpi) for n, img, dpi, *_ in items], lg.tess, ws.root,
-                      ocr.tessdata_dir(cfg.tessdata), jobs, cfg.tesseract)
+    tess = dict.fromkeys((n for n, *_ in items), None)
+    if engine != "paddle":
+        tdir = ws.stage("tess", dict(ocr_settings, langs=lg.tess))
+        tess = {n: os.path.join(tdir, f"{n:04d}") for n, *_ in items}
+        ocr.run_tesseract([(img, tess[n], dpi) for n, img, dpi, *_ in items], lg.tess, ws.root,
+                          ocr.tessdata_dir(cfg.tessdata), jobs, cfg.tesseract)
     padd = {}
-    if engine == "fused":
+    if engine in ("fused", "paddle"):
         pdir = ws.stage("paddle", dict(ocr_settings, rec=lg.paddle_rec))
         padd = {n: os.path.join(pdir, f"{n:04d}.json") for n, *_ in items}
         ocr.run_paddle([(img, padd[n]) for n, img, *_ in items], lg.paddle_rec,
                        cfg.paddle_workers or max(1, jobs // 6), jobs)
     fuse.configure(lg)
-    return [textlayer.build_page(n, W, H, tess[n] + ".tsv", scale, lg, padd.get(n))
+    return [textlayer.build_page(n, W, H, tess[n] and tess[n] + ".tsv", scale, lg, padd.get(n))
             for n, img, dpi, W, H, scale in items]
 
 
@@ -233,6 +235,11 @@ def run_photos(cfg):
     sel = parse_pages(cfg.pages, total)
     log(f"{os.path.basename(src)}: {total} pages, processing {len(sel)}")
     jobs = threads_jobs(cfg)
+    # receipt profile: the photo is read as it is; flattening and trimming crop receipt edges
+    receipt = getattr(cfg, "profile", "book") == "receipt"
+    unwarp_mode = "never" if receipt else cfg.unwarp
+    if receipt:
+        log("receipt profile: photos are read as they are (no flattening, no clean-up before OCR)")
 
     # 1. page images
     sdir = ws.stage("src", {})
@@ -249,18 +256,18 @@ def run_photos(cfg):
     srcs = {n: have[f"{n:04d}"] for n in sel}
 
     # 2. flatten photos (UVDoc); cropped flat scans are left alone
-    udir = ws.stage("unwarp", {"model": "UVDoc", "mode": cfg.unwarp})
+    udir = ws.stage("unwarp", {"model": "UVDoc", "mode": unwarp_mode})
     decided = os.path.join(udir, "photo_pages.json")
     is_photo = {int(k): v for k, v in read_json(decided).items()} if os.path.exists(decided) else {}
     todo = [n for n in sel if n not in is_photo]
-    if cfg.unwarp != "auto":
-        is_photo.update({n: cfg.unwarp == "always" for n in todo})
+    if unwarp_mode != "auto":
+        is_photo.update({n: unwarp_mode == "always" for n in todo})
     elif todo:
         flags = pool_map(_is_flat, [srcs[n] for n in todo], jobs, "detect photos vs. flat scans")
         is_photo.update({n: not f for n, f in zip(todo, flags)})
     write_json(decided, {str(k): v for k, v in is_photo.items()})
     photos = [n for n in sel if is_photo[n]]
-    if cfg.unwarp == "auto":
+    if unwarp_mode == "auto":
         log(f"{len(photos)} photographed page(s) to flatten, {len(sel) - len(photos)} flat scan(s)")
     flat = {n: os.path.join(udir, f"{n:04d}.png") if is_photo[n] else srcs[n] for n in sel}
     unwarp.run([(srcs[n], flat[n]) for n in photos], cfg.unwarp_workers or max(1, jobs // 6), jobs)
@@ -279,18 +286,27 @@ def run_photos(cfg):
     log(f"page size: {pw:g} x {ph:g} in ({size_px[0]}x{size_px[1]} px at {PHOTO_DPI} dpi)")
 
     # 4. clean up
-    edir = ws.stage("clean", {"unwarp": cfg.unwarp, "size": size_px, "color": cfg.color, "v": 2})
+    edir = ws.stage("clean", {"unwarp": unwarp_mode, "size": size_px, "color": cfg.color, "v": 2})
     mdir = os.path.join(edir, "photo")
     os.makedirs(mdir, exist_ok=True)
     enh = {n: os.path.join(edir, f"{n:04d}.png") for n in sel}
     masks = {n: os.path.join(mdir, f"{n:04d}.png") for n in sel}
-    pool_map(_enhance_one, [(flat[n], enh[n], masks[n], size_px, cfg.color, 0.012 if is_photo[n] else 0.0)
+    pool_map(_enhance_one, [(flat[n], enh[n], masks[n], size_px, cfg.color,
+                             0.012 if is_photo[n] and not receipt else 0.0)
                             for n in sel if not os.path.exists(enh[n])],
              max(1, min(jobs, 8)), "clean up pages")
 
-    # 5. OCR
-    items = [(n, enh[n], PHOTO_DPI, size_px[0], size_px[1], 1.0) for n in sel]
-    pages = _ocr(cfg, ws, lg, items, {"clean": read_json(os.path.join(edir, ".settings.json"))})
+    # 5. OCR: the cleaned page, or for receipts the original photo, its boxes scaled to the page
+    if receipt:
+        cfg._engine = "paddle" if lg.paddle_rec else "tesseract"
+        items = []
+        for n in sel:
+            with Image.open(srcs[n]) as im:
+                items.append((n, srcs[n], PHOTO_DPI, size_px[0], size_px[1], size_px[0] / im.width))
+        pages = _ocr(cfg, ws, lg, items, {"profile": "receipt"})
+    else:
+        items = [(n, enh[n], PHOTO_DPI, size_px[0], size_px[1], 1.0) for n in sel]
+        pages = _ocr(cfg, ws, lg, items, {"clean": read_json(os.path.join(edir, ".settings.json"))})
 
     # 6. PDF
     written = []

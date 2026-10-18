@@ -4,7 +4,7 @@ import pikepdf
 import pytest
 from PIL import Image
 
-from darealkniga import enhance, fuse, i18n, langs, pdf, textlayer
+from darealkniga import enhance, fuse, i18n, langs, pdf, receipt, textlayer
 from darealkniga.util import natural_key, parse_pages
 
 import accuracy
@@ -353,3 +353,38 @@ def test_tesseract_version(monkeypatch, out, major):
     assert ocr.tesseract_version() == major
     if major and major >= 4:
         assert ocr.tesseract_backend() == "local"
+
+
+def test_receipt_terms_fixed_by_one_letter():
+    """Receipt profile: the few terms every receipt prints, misread by one letter, are put right;
+    real words, other forms of a term and numbers are left alone."""
+    fixes = {"ОЕЩА": "ОБЩА", "УБША": "ОБЩА", "ЕБРО": "ЕВРО", "CYMA:": "СУМА:", "#CYMA/AMT": "#СУМА/AMT",
+             "KAPTU": "КАРТИ", "МАГА3ИН": "МАГАЗИН", "Олератор": "Оператор", "3AAC": "ЗДДС",
+             "YHII:": "УНП:", "EHK:": "ЕИК:"}
+    for wrong, right in fixes.items():
+        assert receipt.fix_word(wrong) == right, wrong
+    for kept in ("разписки:", "КАРТИ", "Шумен", "бихте", "ПЕПСИ", "2.92=", "0.218", "BG127585839"):
+        assert receipt.fix_word(kept) == kept
+
+
+def test_receipt_rows_join_split_decimals_and_mark_vat_group():
+    w = lambda t, x: {"t": t, "box": [x, 0, x + 50, 20]}
+    row = receipt.fix_row([w("ОЕЩА", 0), w("СУМА", 60), w("ЕБРО", 120), w("28.", 300), w("52", 350)])
+    assert [x["t"] for x in row] == ["ОБЩА", "СУМА", "ЕВРО", "28.52"]
+    row = receipt.fix_row([w("1", 0), w("бр", 20), w("×", 40), w("1.65=", 60), w("1.65", 120), w("6", 180)])
+    assert [x["t"] for x in row][-2:] == ["1.65", "Б"]
+    row = receipt.fix_row([w("ПОМЕЛО", 0), w("6", 100)])  # not after a price: kept
+    assert [x["t"] for x in row] == ["ПОМЕЛО", "6"]
+
+
+def test_paddle_page_words_follow_slanted_lines():
+    """PaddleOCR's line boxes are upright; its polygons follow the tilt. Words take their height
+    from the polygon, so rows() can measure the tilt of a photographed receipt and keep a far-right
+    total on its label's row instead of the row below."""
+    pj = {"texts": ["ОБЩА СУМА ЕВРО", "ДЕБ.КАРТА", "6.22"], "scores": [0.9, 0.9, 1.0],
+          "boxes": [[40, 917, 700, 1000], [43, 963, 269, 1032], [969, 966, 1155, 1024]],
+          "polys": [[[40, 917], [700, 950], [697, 1000], [37, 967]],
+                    [[47, 963], [269, 974], [265, 1024], [43, 1013]],
+                    [[971, 966], [1155, 975], [1153, 1024], [969, 1017]]]}
+    rows = textlayer.rows(fuse.paddle_page(pj, 1.0))
+    assert [[x["t"] for x in r] for r in rows] == [["ОБЩА", "СУМА", "ЕВРО", "6.22"], ["ДЕБ.КАРТА"]]

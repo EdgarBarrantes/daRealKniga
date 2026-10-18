@@ -7,7 +7,7 @@ import json
 import os
 import re
 
-from . import fuse
+from . import fuse, receipt
 
 
 def paddle_json(path):
@@ -16,6 +16,9 @@ def paddle_json(path):
 
 
 def build_page(n, W, H, tsv, scale, langs, paddle=None):
+    if tsv is None:  # PaddleOCR only (receipt profile)
+        return {"page": n, "W": W, "H": H, "lines": fuse.paddle_page(paddle_json(paddle), scale),
+                "profile": "receipt"}
     tl = fuse.read_tess(tsv, scale)
     if paddle is not None:
         lines = fuse.fuse_page(tl, fuse.paddle_words(paddle_json(paddle), scale))
@@ -71,7 +74,10 @@ def write_text(pages, path, rows=False):
         for i, p in enumerate(pages):
             if i:
                 f.write("\f")
-            lines = [" ".join(w["t"] for w in l) for l in (_rows(p["lines"]) if rows else p["lines"])]
+            groups = _rows(p["lines"]) if rows else p["lines"]
+            if rows and p.get("profile") == "receipt":
+                groups = [receipt.fix_row(r) for r in groups]
+            lines = [" ".join(w["t"] for w in l) for l in groups]
             out = []
             for l in lines:
                 if out and re.search(r"\w-$", out[-1]) and l[:1].islower():

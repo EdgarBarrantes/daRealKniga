@@ -348,21 +348,54 @@ def read_tess(path, scale):
     return [lines[k] for k in sorted(lines)]
 
 
+def _line_words(txt, sc, box, scale):
+    """One PaddleOCR line -> its words, with x-ranges proportional to character count."""
+    x0, y0, x1, y1 = box
+    txt = txt.strip()
+    n = len(txt)
+    return [{"t": m.group(), "score": sc, "used": False,
+             "box": [(x0 + (x1 - x0) * m.start() / n) * scale, y0 * scale,
+                     (x0 + (x1 - x0) * m.end() / n) * scale, y1 * scale]}
+            for m in re.finditer(r"\S+", txt)]
+
+
 def paddle_words(pj, scale):
     """Split each paddle line into words with x-ranges proportional to character count."""
+    return [w for txt, sc, box in zip(pj["texts"], pj["scores"], pj["boxes"]) for w in _line_words(txt, sc, box, scale)]
+
+
+def _slanted_words(txt, sc, poly, scale):
+    """Like _line_words, but each word's box follows the line's quadrilateral (top-left,
+    top-right, bottom-right, bottom-left), so words of a tilted line sit at their own heights:
+    rows() measures the page's tilt from them."""
+    (tlx, tly), (trx, try_), (brx, bry), (blx, bly) = poly
+    txt = txt.strip()
+    n = len(txt)
+    at = lambda a, b, f: a + (b - a) * f
     out = []
-    for txt, sc, (x0, y0, x1, y1) in zip(pj["texts"], pj["scores"], pj["boxes"]):
-        txt = txt.strip()
-        if not txt:
-            continue
-        n = len(txt)
-        pos = 0
-        for m in re.finditer(r"\S+", txt):
-            a, b = m.start(), m.end()
-            out.append({"t": m.group(), "score": sc, "used": False,
-                        "box": [(x0 + (x1 - x0) * a / n) * scale, y0 * scale,
-                                (x0 + (x1 - x0) * b / n) * scale, y1 * scale]})
+    for m in re.finditer(r"\S+", txt):
+        fa, fb = m.start() / n, m.end() / n
+        top = (at(tly, try_, fa) + at(tly, try_, fb)) / 2
+        bottom = (at(bly, bry, fa) + at(bly, bry, fb)) / 2
+        x0 = min(at(tlx, trx, fa), at(blx, brx, fa))
+        x1 = max(at(tlx, trx, fb), at(blx, brx, fb))
+        out.append({"t": m.group(), "score": sc, "used": False,
+                    "box": [x0 * scale, top * scale, x1 * scale, bottom * scale]})
     return out
+
+
+def paddle_page(pj, scale):
+    """PaddleOCR alone (receipt profile): each of its lines is a line, look-alikes fixed as for
+    Tesseract-only pages. Digits are never changed."""
+    lines = []
+    polys = pj.get("polys") or [None] * len(pj["texts"])
+    for txt, sc, box, poly in zip(pj["texts"], pj["scores"], pj["boxes"], polys):
+        words = _slanted_words(txt, sc, poly, scale) if poly and len(poly) == 4 else _line_words(txt, sc, box, scale)
+        for w in words:
+            w["conf"] = 100 * w["score"]
+        if words:
+            lines.append(words)
+    return tess_only_page(lines, normalize=True)
 
 
 def overlap(a, b):

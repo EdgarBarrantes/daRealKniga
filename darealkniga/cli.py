@@ -14,7 +14,8 @@ examples:
   darealkniga make "Bulgarian for Beginners - Part 1.djvu" --lang bul+eng
   darealkniga make book.pdf --lang bul --title "Под игото" --author "Иван Вазов"
   darealkniga make phone-photos/ --lang rus --page-size 6x9
-  darealkniga make receipt.jpg --lang ukr+eng         # a single photo: receipt, letter, note
+  darealkniga make receipt.jpg --lang ukr+eng         # a single photo: letter, note, form
+  darealkniga make receipt.jpg --profile receipt      # a receipt photo, one line per printed row
   darealkniga make scans.pdf --unwarp never         # force: never flatten (default: detect per page)
   darealkniga make book.djvu --pages 1-20           # quick trial on a few pages
   darealkniga doctor                                # check that everything is installed
@@ -52,6 +53,11 @@ def build_parser():
     m.add_argument("--text-layout", choices=["blocks", "rows"], default="blocks",
                    help=".txt line order: blocks = reading order (books); rows = one line per printed "
                         "row, so labels stay next to their values (receipts, forms, tables) (default: blocks)")
+    m.add_argument("--profile", choices=["book", "receipt"], default="book",
+                   help="receipt: phone photos of receipts and payment slips. The photo is read as it is "
+                        "by PaddleOCR (flattening and clean-up, made for book pages, break thin thermal "
+                        "print and crop receipt edges), look-alike letters are fixed and the text comes "
+                        "out one line per printed row (default: book)")
     m.add_argument("--pages", help="only process these pages, e.g. 1-20,35 (for trials)")
     m.add_argument("--page-size", default="auto",
                    help="output page size in inches, e.g. 5.5x8.5 (default: auto)")
@@ -156,6 +162,8 @@ def main(argv=None):
     bad = args.formats - {"pdf", "djvu", "txt"}
     if bad:
         sys.exit(f"unknown format(s): {', '.join(bad)}")
+    if args.profile == "receipt":
+        args.text_layout = "rows"
     if args.tesseract == "auto":
         args.tesseract = None
     if not os.path.exists(args.input):
